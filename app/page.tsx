@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useUser } from "../context/UserContext";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   const { user, loading, logout } = useUser();
@@ -11,7 +12,7 @@ export default function Navbar() {
   const avatar = user?.avatarUrl ?? `https://api.dicebear.com/9.x/pixel-art/svg?seed=Alex`;
 
   return (
-    <nav>
+    <nav className="flex items-center justify-between p-4 bg-gray-100">
       {user ? (
         <>
           <Image
@@ -24,7 +25,9 @@ export default function Navbar() {
             className="rounded-full"
           />
           <span>Hello, {user.name}</span>
-          <button onClick={logout}>Logout</button>
+
+<Button variant="destructive" onClick={logout}>Logout</Button>
+
         </>
       ) : (
         <a href="/sign-in">Login</a>
