@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { createUser, getUserByEmail } from "@/utils/db/schema-fn/user";
-import { signToken } from "@/utils/db/schema-fn/jwt/jwt";
+import { createUser, getUserByEmail } from "@/utils/db/db-operations/user";
+import { signToken } from "@/utils/db/db-operations/jwt/jwt";
 
 export async function POST(req: Request) {
   try {
     
     const body = await req.json();
-    const { email, name, password, avatarUrl } = body;
+    let { email, name, password, avatarUrl } = body;
 
        const commonRequired = ["email", "password", "name"];
     for (const field of commonRequired) {
@@ -16,6 +16,10 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
+    }
+
+    if(!avatarUrl){
+      avatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${email}`;
     }
 
     const existingUser = await getUserByEmail(email);
@@ -28,12 +32,12 @@ export async function POST(req: Request) {
       email,
       name,
       password, 
-      avatarUrl: avatarUrl || null,
+      avatarUrl: avatarUrl,
     });
 
     const token = signToken({
-      name: body.name,
-      email: body.email
+      name,
+      email,
      
     });
 
