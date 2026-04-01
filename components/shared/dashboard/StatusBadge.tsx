@@ -5,11 +5,19 @@ import { cn } from "@/lib/utils";
 type StatusTone = "success" | "info" | "warning" | "danger" | "neutral";
 
 const toneStyles: Record<StatusTone, string> = {
-  success: "border-emerald-300/55 bg-emerald-500/24 text-emerald-50",
-  info: "border-cyan-300/55 bg-cyan-500/24 text-cyan-50",
-  warning: "border-amber-300/55 bg-amber-500/24 text-amber-50",
-  danger: "border-rose-300/55 bg-rose-500/24 text-rose-50",
-  neutral: "border-slate-300/45 bg-slate-500/24 text-slate-100",
+  success: "border-emerald-800 bg-emerald-200 text-emerald-950",
+  info: "border-cyan-800 bg-cyan-200 text-cyan-950",
+  warning: "border-amber-800 bg-amber-200 text-amber-950",
+  danger: "border-rose-800 bg-rose-200 text-rose-950",
+  neutral: "border-slate-700 bg-slate-200 text-slate-900",
+};
+
+const semanticToneLabel: Record<StatusTone, string> = {
+  success: "success",
+  info: "informational",
+  warning: "warning",
+  danger: "error",
+  neutral: "neutral",
 };
 
 interface StatusBadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -17,12 +25,16 @@ interface StatusBadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 export function StatusBadge({ tone = "neutral", className, children, ...props }: StatusBadgeProps) {
+  const semanticLabel = semanticToneLabel[tone];
+
   return (
     <Badge
       variant="outline"
       className={cn("inline-flex items-center gap-1 border px-2.5 py-1 text-xs font-semibold", toneStyles[tone], className)}
       {...props}
+      aria-label={props["aria-label"] ?? `${semanticLabel} status`}
     >
+      <span className="sr-only">{semanticLabel} status: </span>
       {children}
     </Badge>
   );

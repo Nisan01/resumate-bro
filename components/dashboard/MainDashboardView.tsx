@@ -92,7 +92,7 @@ const severityTone = {
 } as const;
 
 const glassItemCardClass =
-  "rounded-2xl border border-white/24 bg-linear-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-4 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
+  "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-4 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
 const glassActionButtonClass =
   "!border-white/35 !bg-slate-900/72 !text-slate-100 shadow-[0_10px_22px_rgba(2,8,24,0.34)] hover:!bg-slate-800/78 hover:!text-white";
@@ -101,7 +101,7 @@ export function MainDashboardView() {
   const { user, loading, logout } = useUser();
   const router = useRouter();
 
-  const firstName = user?.name?.trim().split(" ")[0] ?? "Prabir";
+  const firstName = user?.name?.trim().split(/\s+/)[0] || "there";
 
   const handleLogout = async () => {
     try {

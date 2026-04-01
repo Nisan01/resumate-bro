@@ -76,7 +76,9 @@ export function MetricCard({
       <CardContent className="relative p-5">
         <div className="mb-4 flex items-start justify-between gap-3">
           <p className="text-sm font-medium text-slate-100">{label}</p>
-          <div className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl border", style.icon)}>{icon}</div>
+          {icon ? (
+            <div className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl border", style.icon)}>{icon}</div>
+          ) : null}
         </div>
 
         <p className="text-3xl font-semibold tracking-tight text-white">{value}</p>

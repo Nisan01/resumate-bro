@@ -94,6 +94,7 @@ export function RoadmapWaveTimeline({ steps }: RoadmapWaveTimelineProps) {
   const stepWidth = normalizedSteps.length > 0 ? 100 / normalizedSteps.length : 0;
   const desktopTrackLines = Array.from({ length: normalizedSteps.length + 1 }, (_, index) => index * stepWidth);
 
+  
   const positionedSteps = normalizedSteps.map((step, index) => ({
     ...step,
     left: index * stepWidth,

@@ -22,6 +22,8 @@ const navItems = [
    {label: "Settings",           path: "settings",           icon: Settings }
 ];
 
+const avatarGradientClass = "bg-gradient-to-r";
+
 function DashBoardNav() {
   const router = useRouter();
   const currentPath = usePathname();
@@ -69,7 +71,7 @@ const isActive = (path: string) => {
             className="shrink-0 flex items-center justify-center"
             aria-label="Toggle sidebar"
           >
-          <div className='sm:w-9 sm:h-9 rounded-xl bg-linear-to-r from-[#c4b0ff] via-[#7ee8fa] to-[#ff9de2] flex items-center justify-center text-[10px] sm:text-xl text-[#0a0714] shadow-[0_4px_16px_rgba(196,176,255,0.36)]"'>R</div>
+          <div className={`sm:w-9 sm:h-9 rounded-xl ${avatarGradientClass} from-[#c4b0ff] via-[#7ee8fa] to-[#ff9de2] flex items-center justify-center text-[10px] sm:text-xl text-[#0a0714] shadow-[0_4px_16px_rgba(196,176,255,0.36)]`}>R</div>
           </button>
           <div
             className={`overflow-hidden transition-all duration-300 ${expanded ? 'max-w-50 opacity-100' : 'max-w-0 opacity-0 pointer-events-none'}`}

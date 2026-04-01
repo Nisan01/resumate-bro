@@ -8,7 +8,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle2, Code2, Rocket } from "lucide-react";
 
-const projectPipeline = [
+type ProjectStatus = "In Build" | "Planning" | "Backlog";
+type StatusTone = "success" | "info" | "warning" | "danger" | "neutral";
+
+interface ProjectPipelineItem {
+  name: string;
+  summary: string;
+  stack: string[];
+  progress: number;
+  status: string;
+  nextMilestone: string;
+}
+
+const projectPipeline: ProjectPipelineItem[] = [
   {
     name: "ResuMate Dashboard Revamp",
     summary: "Build complete dashboard experience with analytics cards and smart sections.",
@@ -35,11 +47,15 @@ const projectPipeline = [
   },
 ];
 
-const projectStatusTone = {
+const projectStatusTone: Record<ProjectStatus, StatusTone> = {
   "In Build": "info",
   Planning: "warning",
   Backlog: "neutral",
-} as const;
+};
+
+function getProjectStatusTone(status: string): StatusTone {
+  return status in projectStatusTone ? projectStatusTone[status as ProjectStatus] : "neutral";
+}
 
 const deliverables = [
   {
@@ -120,7 +136,7 @@ export function ProjectsView() {
               <article key={project.name} className={glassItemCardClass}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h3 className="text-base font-semibold text-slate-100">{project.name}</h3>
-                  <StatusBadge tone={projectStatusTone[project.status]}>{project.status}</StatusBadge>
+                  <StatusBadge tone={getProjectStatusTone(project.status)}>{project.status}</StatusBadge>
                 </div>
 
                 <p className="mt-2 text-sm text-slate-300">{project.summary}</p>

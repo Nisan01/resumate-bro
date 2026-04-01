@@ -29,6 +29,11 @@ export function ProgressMeter({ label, value, note, tone = "emerald" }: Progress
       <div className="h-2.5 w-full overflow-hidden rounded-full border border-white/10 bg-slate-200/12">
         <div
           className={cn("h-full rounded-full transition-all duration-700", barStyles[tone])}
+          role="progressbar"
+          aria-label={`${label} progress`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={boundedValue}
           style={{ width: `${boundedValue}%` }}
         />
       </div>

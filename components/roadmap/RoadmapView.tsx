@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useSyncExternalStore } from "react";
 import { BookOpenCheck, BriefcaseBusiness, GraduationCap, Sparkles, Target } from "lucide-react";
 import {
   DashboardPageShell,
@@ -202,10 +202,6 @@ const glassItemCardClass =
   "rounded-2xl border border-white/24 bg-linear-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-4 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
 function inferTrackFromResumeSnapshot(): StudentTrack {
-  if (typeof window === "undefined") {
-    return "btech";
-  }
-
   const candidates = [
     localStorage.getItem("resumeDegreeTrack"),
     localStorage.getItem("resume_degree_track"),
@@ -222,8 +218,13 @@ function inferTrackFromResumeSnapshot(): StudentTrack {
 }
 
 export function RoadmapView() {
-  const track = useMemo(() => inferTrackFromResumeSnapshot(), []);
-  const selectedRoadmap = trackRoadmaps[track];
+  const track = useSyncExternalStore<StudentTrack>(
+    () => () => {},
+    inferTrackFromResumeSnapshot,
+    () => "btech",
+  );
+
+  const selectedRoadmap: TrackRoadmap = trackRoadmaps[track];
 
   return (
     <DashboardPageShell
@@ -281,8 +282,8 @@ export function RoadmapView() {
           <div className="rounded-2xl border border-emerald-200/35 bg-linear-to-br from-emerald-400/16 via-emerald-300/10 to-transparent p-4 shadow-[0_14px_30px_rgba(6,78,59,0.3)]">
             <h3 className="mb-3 text-sm font-semibold tracking-wide text-emerald-100 uppercase">Strengths</h3>
             <ul className="space-y-2 text-sm text-emerald-50/90">
-              {selectedRoadmap.strengths.map((point) => (
-                <li key={point} className="flex items-start gap-2">
+              {selectedRoadmap.strengths.map((point, idx) => (
+                <li key={`strength-${idx}`} className="flex items-start gap-2">
                   <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-200" />
                   <span>{point}</span>
                 </li>
@@ -293,8 +294,8 @@ export function RoadmapView() {
           <div className="rounded-2xl border border-amber-200/35 bg-linear-to-br from-amber-400/16 via-amber-300/10 to-transparent p-4 shadow-[0_14px_30px_rgba(120,53,15,0.28)]">
             <h3 className="mb-3 text-sm font-semibold tracking-wide text-amber-100 uppercase">Needs Focus</h3>
             <ul className="space-y-2 text-sm text-amber-50/90">
-              {selectedRoadmap.focusAreas.map((point) => (
-                <li key={point} className="flex items-start gap-2">
+              {selectedRoadmap.focusAreas.map((point, idx) => (
+                <li key={`focus-${idx}`} className="flex items-start gap-2">
                   <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-amber-200" />
                   <span>{point}</span>
                 </li>
