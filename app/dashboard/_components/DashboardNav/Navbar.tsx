@@ -9,7 +9,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 
 const navItems = [
-    {label:"Dashboard",         path: "/",         icon: LayoutDashboard },
+  {label:"Dashboard",         path: "",         icon: LayoutDashboard },
     { label: "Resume Analyzer",    path: "resume-analyzer",    icon: Eye },
   { label: "AI Career Coach",    path: "ai-career-coach",    icon: BotMessageSquare },
   { label: "Practice Questions", path: "practice-questions", icon: UserPlus },
@@ -25,15 +25,19 @@ const navItems = [
 function DashBoardNav() {
   const router = useRouter();
   const currentPath = usePathname();
-  const { user, loading } = useUser();
+  const { user } = useUser();
   const [expanded, setExpanded] = useState(false);
 
   const navigate = (path: string) => {
-    router.push(`/dashboard/${path}`);
+    router.push(path ? `/dashboard/${path}` : "/dashboard");
     setExpanded(false);
   };
 
-const isActive = (path: string) => currentPath?.startsWith(`/dashboard/${path}`);
+const isActive = (path: string) => {
+  if (!currentPath) return false;
+  if (path === "") return currentPath === "/dashboard";
+  return currentPath.startsWith(`/dashboard/${path}`);
+};
   return (
     <>
       {expanded && (
@@ -46,7 +50,7 @@ const isActive = (path: string) => currentPath?.startsWith(`/dashboard/${path}`)
       <aside
         className={`
           h-full flex flex-col p-2 overflow-hidden z-30 relative
-          ${expanded ? 'w-[220px] lg:w-[300px]' : 'w-[77px]'}
+          ${expanded ? 'w-56 lg:w-72' : 'w-20'}
         `}
         style={{
           transition: 'width 0.6s cubic-bezier(0.65, 0, 0.35, 1)',
@@ -57,7 +61,7 @@ const isActive = (path: string) => currentPath?.startsWith(`/dashboard/${path}`)
 
         {/* ── Header ── */}
         <div
-          className={`flex items-center h-[64px] transition-all duration-300 shrink-0 ${expanded ? 'px-3 gap-3' : 'px-3 gap-3'}`}
+          className={`flex items-center h-16 transition-all duration-300 shrink-0 ${expanded ? 'px-3 gap-3' : 'px-3 gap-3'}`}
           style={{ borderBottom: '1px solid rgba(99, 130, 220, 0.1)' }}
         >
           <button
@@ -65,10 +69,10 @@ const isActive = (path: string) => currentPath?.startsWith(`/dashboard/${path}`)
             className="shrink-0 flex items-center justify-center"
             aria-label="Toggle sidebar"
           >
-          <div className='sm:w-9 sm:h-9 rounded-xl bg-gradient-to-r from-[#c4b0ff] via-[#7ee8fa] to-[#ff9de2] flex items-center justify-center text-[10px] sm:text-xl text-[#0a0714] shadow-[0_4px_16px_rgba(196,176,255,0.36)]"'>R</div>
+          <div className='sm:w-9 sm:h-9 rounded-xl bg-linear-to-r from-[#c4b0ff] via-[#7ee8fa] to-[#ff9de2] flex items-center justify-center text-[10px] sm:text-xl text-[#0a0714] shadow-[0_4px_16px_rgba(196,176,255,0.36)]"'>R</div>
           </button>
           <div
-            className={`overflow-hidden transition-all duration-300 ${expanded ? 'max-w-[200px] opacity-100' : 'max-w-0 opacity-0 pointer-events-none'}`}
+            className={`overflow-hidden transition-all duration-300 ${expanded ? 'max-w-50 opacity-100' : 'max-w-0 opacity-0 pointer-events-none'}`}
             style={{ transition: 'max-width 0.6s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.6s cubic-bezier(0.65, 0, 0.35, 1)' }}
           >
             <h2 className="text-[15px] font-semibold whitespace-nowrap leading-tight" style={{ color: '#e2e8f0' }}>
@@ -89,13 +93,13 @@ const isActive = (path: string) => currentPath?.startsWith(`/dashboard/${path}`)
           className={`
             flex items-center rounded-lg cursor-pointer transition-all duration-150 px-4 py-2 gap-3
             ${active
-              ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg'
+              ? 'bg-linear-to-r from-purple-600 to-purple-800 text-white shadow-lg'
               : 'text-[#7a8fb5] hover:bg-white/10 hover:text-white'
             }
           `}
         >
           <Icon className="shrink-0 w-5 h-5" />
-          <span className={`text-sm font-normal whitespace-nowrap overflow-hidden block ${expanded ? 'max-w-[200px] opacity-100' : 'max-w-0 opacity-0'}`}>
+          <span className={`text-sm font-normal whitespace-nowrap overflow-hidden block ${expanded ? 'max-w-50 opacity-100' : 'max-w-0 opacity-0'}`}>
             {item.label}
           </span>
         </div>
@@ -115,7 +119,7 @@ const isActive = (path: string) => currentPath?.startsWith(`/dashboard/${path}`)
     `}
   >
     {/* White circle wrapper */}
-    <div className="bg-white rounded-full p-[2px] shrink-0">
+    <div className="bg-white rounded-full p-0.5 shrink-0">
       <Image
         src={user?.avatarUrl || `https://api.dicebear.com/9.x/pixel-art/svg?seed=${user?.name || 'User'}`}
         alt={user?.name || 'User'}

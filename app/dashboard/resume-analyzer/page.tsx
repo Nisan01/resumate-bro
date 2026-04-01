@@ -1,9 +1,5 @@
-import React from 'react'
+import { ResumeAnalyzerView } from "@/components/resume-analyzer/ResumeAnalyzerView";
 
-function page() {
-  return (
-    <div>page</div>
-  )
+export default function ResumeAnalyzerPage() {
+  return <ResumeAnalyzerView />;
 }
-
-export default page
