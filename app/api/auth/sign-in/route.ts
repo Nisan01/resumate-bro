@@ -1,7 +1,7 @@
 // app/api/auth/sign-in/route.ts
 import { NextResponse } from "next/server";
-import { getUserByEmail } from "@/utils/db/schema-fn/user";
-import { signToken } from "@/utils/db/schema-fn/jwt/jwt";
+import { getUserByEmail } from "@/utils/db/db-operations/user";
+import { signToken } from "@/utils/db/db-operations/jwt/jwt";
 
 export async function POST(req: Request) {
   try {

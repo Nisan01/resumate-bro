@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
-import { getUserByEmail } from "@/utils/db/schema-fn/user";
+import { getUserByEmail } from "@/utils/db/db-operations/user";
 
 export async function GET() {
   const cookieStore = await cookies();
