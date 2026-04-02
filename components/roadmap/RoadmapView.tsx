@@ -199,7 +199,7 @@ const trackRoadmaps: Record<StudentTrack, TrackRoadmap> = {
 };
 
 const glassItemCardClass =
-  "rounded-2xl border border-white/24 bg-linear-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-4 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
+  "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
 function inferTrackFromResumeSnapshot(): StudentTrack {
   const candidates = [
@@ -251,7 +251,7 @@ export function RoadmapView() {
           </StatusBadge>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-3">
           <MetricCard
             label="Resume Quality"
             value={`${selectedRoadmap.score}/100`}
@@ -278,8 +278,8 @@ export function RoadmapView() {
           />
         </div>
 
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-emerald-200/35 bg-linear-to-br from-emerald-400/16 via-emerald-300/10 to-transparent p-4 shadow-[0_14px_30px_rgba(6,78,59,0.3)]">
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-200/35 bg-linear-to-br from-emerald-400/16 via-emerald-300/10 to-transparent p-5 sm:p-6 shadow-[0_14px_30px_rgba(6,78,59,0.3)]">
             <h3 className="mb-3 text-sm font-semibold tracking-wide text-emerald-100 uppercase">Strengths</h3>
             <ul className="space-y-2 text-sm text-emerald-50/90">
               {selectedRoadmap.strengths.map((point, idx) => (
@@ -291,7 +291,7 @@ export function RoadmapView() {
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-amber-200/35 bg-linear-to-br from-amber-400/16 via-amber-300/10 to-transparent p-4 shadow-[0_14px_30px_rgba(120,53,15,0.28)]">
+          <div className="rounded-2xl border border-amber-200/35 bg-linear-to-br from-amber-400/16 via-amber-300/10 to-transparent p-5 sm:p-6 shadow-[0_14px_30px_rgba(120,53,15,0.28)]">
             <h3 className="mb-3 text-sm font-semibold tracking-wide text-amber-100 uppercase">Needs Focus</h3>
             <ul className="space-y-2 text-sm text-amber-50/90">
               {selectedRoadmap.focusAreas.map((point, idx) => (
@@ -304,7 +304,7 @@ export function RoadmapView() {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
           {selectedRoadmap.progress.map((meter) => (
             <div key={meter.label} className={glassItemCardClass}>
               <ProgressMeter label={meter.label} value={meter.value} note={meter.note} tone={meter.tone} />
