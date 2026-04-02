@@ -19,15 +19,6 @@ RESPONSE GUIDELINES: Follow this 8-step approach:
 7. ADDITIONAL SECTIONS — certifications, volunteer work, projects, publications; assess value added.
 8. GENERAL FEEDBACK — overall tone, professionalism, and final improvements to stand out to recruiters.
 
-INFORMATION ABOUT ME:
-• My resume: {{resume_content}}
-• Desired job role: {{desired_role}}
-• Industry: {{industry}}
-• Key strengths: {{key_strengths}}
-• Major achievements: {{major_achievements}}
-• Skills to highlight: {{skills_to_highlight}}
-• Educational background: {{educational_background}}
-
 OUTPUT: Detailed, actionable feedback covering each section thoroughly. Specific suggestions for improvement. Structured format easy to implement. Optimised for clarity, impact, and professionalism.`
   }
 ];
