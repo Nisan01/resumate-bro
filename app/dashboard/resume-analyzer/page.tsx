@@ -1,3 +1,8 @@
+import { ResumeAnalyzerView } from "@/components/resume-analyzer/ResumeAnalyzerView";
+
+export default function ResumeAnalyzerPage() {
+  return <ResumeAnalyzerView />;
+}
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
