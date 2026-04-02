@@ -9,7 +9,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useUser } from '@/context/UserContext';
 
 const navItems = [
-    {label:"Dashboard",         path: "/",         icon: LayoutDashboard },
+  {label:"Dashboard",         path: "",         icon: LayoutDashboard },
     { label: "Resume Analyzer",    path: "resume-analyzer",    icon: Eye },
   { label: "AI Career Coach",    path: "ai-career-coach",    icon: BotMessageSquare },
   { label: "Practice Questions", path: "practice-questions", icon: UserPlus },
@@ -22,14 +22,16 @@ const navItems = [
    {label: "Settings",           path: "settings",           icon: Settings }
 ];
 
+const avatarGradientClass = "bg-gradient-to-r";
+
 function DashBoardNav() {
   const router = useRouter();
   const currentPath = usePathname();
-  const { user, loading } = useUser();
+  const { user } = useUser();
   const [expanded, setExpanded] = useState(false);
 
   const navigate = (path: string) => {
-    router.push(`/dashboard/${path}`);
+    router.push(path ? `/dashboard/${path}` : "/dashboard");
     setExpanded(false);
   };
 
@@ -134,7 +136,7 @@ const isActive = (path: string) => {
           className={`
             flex items-center rounded-lg cursor-pointer transition-all duration-150 px-4 py-2 gap-3
             ${active
-              ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg'
+              ? 'bg-linear-to-r from-purple-600 to-purple-800 text-white shadow-lg'
               : 'text-[#7a8fb5] hover:bg-white/10 hover:text-white'
             }
           `}
