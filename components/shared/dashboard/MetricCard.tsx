@@ -15,28 +15,28 @@ const toneStyles: Record<
   }
 > = {
   teal: {
-    card: "border-teal-300/30 bg-linear-to-br from-teal-400/42 via-cyan-500/24 to-slate-950/80",
+    card: "border-teal-300/30 bg-gradient-to-br from-teal-400/42 via-cyan-500/24 to-slate-950/80",
     badge: "border-teal-200/55 bg-slate-950/44 text-teal-100",
     helper: "text-slate-100/92",
     glow: "bg-teal-300/26",
     icon: "border-teal-200/45 bg-slate-950/40 text-teal-100",
   },
   amber: {
-    card: "border-amber-300/30 bg-linear-to-br from-amber-400/44 via-orange-500/24 to-slate-950/80",
+    card: "border-amber-300/30 bg-gradient-to-br from-amber-400/44 via-orange-500/24 to-slate-950/80",
     badge: "border-amber-200/55 bg-slate-950/44 text-amber-100",
     helper: "text-slate-100/92",
     glow: "bg-amber-300/26",
     icon: "border-amber-200/45 bg-slate-950/40 text-amber-100",
   },
   sky: {
-    card: "border-sky-300/30 bg-linear-to-br from-sky-400/44 via-blue-500/24 to-slate-950/80",
+    card: "border-sky-300/30 bg-gradient-to-br from-sky-400/44 via-blue-500/24 to-slate-950/80",
     badge: "border-sky-200/55 bg-slate-950/44 text-sky-100",
     helper: "text-slate-100/92",
     glow: "bg-sky-300/26",
     icon: "border-sky-200/45 bg-slate-950/40 text-sky-100",
   },
   rose: {
-    card: "border-rose-300/30 bg-linear-to-br from-rose-400/40 via-fuchsia-500/24 to-slate-950/80",
+    card: "border-rose-300/30 bg-gradient-to-br from-rose-400/40 via-fuchsia-500/24 to-slate-950/80",
     badge: "border-rose-200/55 bg-slate-950/44 text-rose-100",
     helper: "text-slate-100/92",
     glow: "bg-rose-300/26",
@@ -71,9 +71,9 @@ export function MetricCard({
       )}
     >
       <span className={cn("pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl", style.glow)} />
-      <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-white/65 to-transparent opacity-70" />
+      <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/65 to-transparent opacity-70" />
 
-      <CardContent className="relative p-5">
+      <CardContent className="relative p-6 sm:p-7">
         <div className="mb-4 flex items-start justify-between gap-3">
           <p className="text-sm font-medium text-slate-100">{label}</p>
           {icon ? (

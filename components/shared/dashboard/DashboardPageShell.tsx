@@ -20,8 +20,13 @@ export function DashboardPageShell({
   children,
 }: DashboardPageShellProps) {
   return (
-    <div className={cn("mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8", className)}>
-      <header className="relative overflow-hidden rounded-3xl border border-white/20 bg-linear-to-br from-slate-900/95 via-cyan-900/75 to-emerald-900/80 p-6 text-slate-100 shadow-2xl shadow-slate-950/45">
+    <div
+      className={cn(
+        "w-full space-y-7 px-5 py-5 sm:px-7 sm:py-6 lg:px-10 lg:py-8 xl:px-12 2xl:px-14",
+        className,
+      )}
+    >
+      <header className="relative overflow-hidden rounded-3xl border border-white/20 bg-linear-to-br from-slate-900/95 via-cyan-900/75 to-emerald-900/80 p-7 text-slate-100 shadow-2xl shadow-slate-950/45 sm:p-8">
         <div className="absolute -left-12 -top-12 h-44 w-44 rounded-full bg-emerald-300/20 blur-3xl" />
         <div className="absolute -bottom-20 right-0 h-56 w-56 rounded-full bg-cyan-300/20 blur-3xl" />
 
@@ -42,7 +47,7 @@ export function DashboardPageShell({
         </div>
       </header>
 
-      <div className="space-y-6">{children}</div>
+      <div className="space-y-7">{children}</div>
     </div>
   );
 }

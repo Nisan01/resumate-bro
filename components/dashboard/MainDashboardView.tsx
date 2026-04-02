@@ -92,7 +92,7 @@ const severityTone = {
 } as const;
 
 const glassItemCardClass =
-  "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-4 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
+  "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
 const glassActionButtonClass =
   "!border-white/35 !bg-slate-900/72 !text-slate-100 shadow-[0_10px_22px_rgba(2,8,24,0.34)] hover:!bg-slate-800/78 hover:!text-white";
@@ -141,7 +141,7 @@ export function MainDashboardView() {
         </Button>
       }
     >
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Resume Strength"
           value="82 / 100"
@@ -176,7 +176,7 @@ export function MainDashboardView() {
         />
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-3">
+      <section className="grid gap-5 xl:grid-cols-3">
         <DashboardPanel
           className="xl:col-span-2"
           title="Today Focus"
@@ -219,7 +219,7 @@ export function MainDashboardView() {
         </DashboardPanel>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-5 lg:grid-cols-2">
         <DashboardPanel
           title="Resume Intelligence"
           description="Signals from your latest resume analysis."

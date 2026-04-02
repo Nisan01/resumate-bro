@@ -64,10 +64,10 @@ const priorityTone = {
 } as const;
 
 const glassItemCardClass =
-  "rounded-2xl border border-white/24 bg-linear-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-4 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
+  "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
 const compactGlassCardClass =
-  "rounded-xl border border-white/24 bg-linear-to-br from-slate-950/74 via-slate-900/58 to-slate-800/42 p-3 backdrop-blur-md shadow-[0_10px_24px_rgba(2,8,24,0.3)]";
+  "rounded-xl border border-white/24 bg-gradient-to-br from-slate-950/74 via-slate-900/58 to-slate-800/42 p-4 backdrop-blur-md shadow-[0_10px_24px_rgba(2,8,24,0.3)]";
 
 const glassActionButtonClass =
   "!border-white/35 !bg-slate-900/72 !text-slate-100 shadow-[0_10px_22px_rgba(2,8,24,0.34)] hover:!bg-slate-800/78 hover:!text-white";
@@ -243,7 +243,7 @@ export function ResumeAnalyzerView() {
       title="AI Resume Analysis Workspace"
       description="Upload your resume, review your score, close job-role gaps, and apply targeted improvements."
     >
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <MetricCard
           label="Resume Score"
           value="82 / 100"
@@ -270,7 +270,7 @@ export function ResumeAnalyzerView() {
         />
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-3">
+      <section className="grid gap-5 xl:grid-cols-3">
         <DashboardPanel
           className="xl:col-span-2"
           title="Upload and Analyze"
@@ -293,10 +293,10 @@ export function ResumeAnalyzerView() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onKeyDown={handleDropzoneKeyDown}
-            className={`rounded-2xl border border-dashed p-6 shadow-[0_18px_34px_rgba(2,8,24,0.36)] focus:outline-hidden focus:ring-2 focus:ring-cyan-300/80 ${
+            className={`rounded-2xl border border-dashed p-7 sm:p-8 shadow-[0_18px_34px_rgba(2,8,24,0.36)] focus:outline-hidden focus:ring-2 focus:ring-cyan-300/80 ${
               isDragActive
-                ? "border-cyan-300/70 bg-linear-to-br from-cyan-400/25 via-slate-900/60 to-slate-800/45"
-                : "border-white/35 bg-linear-to-br from-slate-950/72 via-slate-900/56 to-slate-800/42"
+                ? "border-cyan-300/70 bg-gradient-to-br from-cyan-400/25 via-slate-900/60 to-slate-800/45"
+                : "border-white/35 bg-gradient-to-br from-slate-950/72 via-slate-900/56 to-slate-800/42"
             }`}
           >
             <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
