@@ -36,13 +36,12 @@ function DashBoardNav() {
   };
 
 const isActive = (path: string) => {
-  
-  if (path === "/") {
-    return currentPath === "/dashboard" || currentPath === "/dashboard/";
-  }
-  
-  return currentPath?.startsWith(`/dashboard/${path}`);
-};
+    if (path === "") {
+      // Only active when exactly on /dashboard, not on sub-routes
+      return currentPath === "/dashboard" || currentPath === "/dashboard/";
+    }
+    return currentPath?.startsWith(`/dashboard/${path}`);
+  };
   return (
     <>
       {expanded && (
