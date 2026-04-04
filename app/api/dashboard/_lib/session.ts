@@ -21,9 +21,20 @@ export async function getDashboardSession(): Promise<DashboardSession | null> {
   if (!token) return null;
 
   const decoded = await verifyToken(token);
-  if (!decoded?.email) return null;
+  if (!decoded?.email || !decoded?.id || !decoded?.name) return null;
 
   const normalizedEmail = decoded.email.trim().toLowerCase();
+  const normalizedUserId = decoded.id.trim();
+  const normalizedName = decoded.name.trim();
+
+  if (!normalizedEmail || !normalizedUserId || !normalizedName) return null;
+
+  const tokenSession: DashboardSession = {
+    userId: normalizedUserId,
+    email: normalizedEmail,
+    name: normalizedName,
+    avatarUrl: null,
+  };
 
   try {
     const user = await getUserByEmail(normalizedEmail);
@@ -37,23 +48,27 @@ export async function getDashboardSession(): Promise<DashboardSession | null> {
       };
     }
 
-    if (allowDevFallback && isDevFallbackUserId(decoded.id)) {
-      return {
-        userId: decoded.id,
-        email: normalizedEmail,
-        name: decoded.name,
-        avatarUrl: null,
-      };
+    if (allowDevFallback && isDevFallbackUserId(normalizedUserId)) {
+      if (process.env.NODE_ENV === "production") {
+        console.warn("/api/dashboard/session token-only fallback enabled in production", {
+          email: normalizedEmail,
+        });
+      }
+
+      return tokenSession;
     }
   } catch {
-    if (allowDevFallback && isDevFallbackUserId(decoded.id)) {
-      return {
-        userId: decoded.id,
-        email: normalizedEmail,
-        name: decoded.name,
-        avatarUrl: null,
-      };
+    if (allowDevFallback && isDevFallbackUserId(normalizedUserId)) {
+      if (process.env.NODE_ENV === "production") {
+        console.warn("/api/dashboard/session token-only fallback enabled in production after DB failure", {
+          email: normalizedEmail,
+        });
+      }
+
+      return tokenSession;
     }
+
+    return null;
   }
 
   return null;

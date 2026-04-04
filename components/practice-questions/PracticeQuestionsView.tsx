@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   DashboardPageShell,
@@ -9,7 +9,8 @@ import {
   StatusBadge,
 } from "@/components/shared/dashboard";
 import { Button } from "@/components/ui/button";
-import { Brain, CircleHelp, ListChecks, Sparkles } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Brain, ListChecks, Sparkles, Upload } from "lucide-react";
 import {
   LOCAL_RESUME_PROFILE_KEY,
   type InterviewDifficulty,
@@ -80,6 +81,8 @@ function isResumeProfileShape(value: unknown): value is ResumeProfile {
 const glassItemCardClass =
   "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
+const MAX_RESUME_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+
 const difficultyConfig: Array<{ key: InterviewDifficulty; label: string; helper: string }> = [
   {
     key: "beginner",
@@ -138,16 +141,34 @@ function formatDifficultyLabel(level: InterviewDifficulty | null): string {
   return "Not selected";
 }
 
+function validateResumeFile(file: File): string | null {
+  const fileName = file.name.toLowerCase();
+  const isPdf = file.type === "application/pdf" || fileName.endsWith(".pdf");
+
+  if (!isPdf) {
+    return "Please upload a PDF file only.";
+  }
+
+  if (file.size > MAX_RESUME_FILE_SIZE_BYTES) {
+    return "Resume size must be 5MB or less.";
+  }
+
+  return null;
+}
+
 export function PracticeQuestionsView() {
   const router = useRouter();
+  const resumeFileInputRef = useRef<HTMLInputElement | null>(null);
   const [resumeProfile, setResumeProfile] = useState<ResumeProfile | null>(null);
   const [started, setStarted] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<InterviewDifficulty | null>(null);
   const [questions, setQuestions] = useState<PracticeQuestionItem[]>([]);
   const [nextOffset, setNextOffset] = useState(0);
-  const [source, setSource] = useState<"gemini" | "fallback" | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [resumeUploadError, setResumeUploadError] = useState("");
+  const [resumeUploadSuccess, setResumeUploadSuccess] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -190,10 +211,78 @@ export function PracticeQuestionsView() {
 
   const canGenerate = useMemo(() => Boolean(resumeProfile && selectedDifficulty), [resumeProfile, selectedDifficulty]);
 
+  const resetInterviewState = () => {
+    setStarted(false);
+    setSelectedDifficulty(null);
+    setQuestions([]);
+    setNextOffset(0);
+    setErrorMessage("");
+  };
+
+  const uploadResumeForPractice = async (file: File) => {
+    const validationError = validateResumeFile(file);
+    if (validationError) {
+      setResumeUploadError(validationError);
+      setResumeUploadSuccess("");
+      return;
+    }
+
+    setUploadingResume(true);
+    setResumeUploadError("");
+    setResumeUploadSuccess("");
+
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      const response = await fetch("/api/dashboard/resume-analyzer/upload", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = (await response.json()) as { error?: string; resumeProfile?: ResumeProfile };
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to upload resume right now.");
+      }
+
+      if (!isResumeProfileShape(data.resumeProfile)) {
+        throw new Error("Resume analysis completed but returned an invalid profile.");
+      }
+
+      setResumeProfile(data.resumeProfile);
+      persistLocalResumeProfile(data.resumeProfile);
+      resetInterviewState();
+      setResumeUploadSuccess(`Resume "${file.name}" is now linked to practice questions.`);
+    } catch (error) {
+      setResumeUploadError(error instanceof Error ? error.message : "Unable to upload resume right now.");
+      setResumeUploadSuccess("");
+    } finally {
+      setUploadingResume(false);
+      if (resumeFileInputRef.current) {
+        resumeFileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleResumeFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    void uploadResumeForPractice(file);
+  };
+
+  const handleResumeUploadClick = () => {
+    setResumeUploadError("");
+    setResumeUploadSuccess("");
+    resumeFileInputRef.current?.click();
+  };
+
   const requestQuestions = async (difficulty: InterviewDifficulty, append: boolean) => {
     const activeProfile = resumeProfile;
     if (!activeProfile) {
-      setErrorMessage("Please analyze your resume first in Resume Analyzer.");
+      setErrorMessage("Upload your resume here first, then start the interview.");
       return;
     }
 
@@ -224,7 +313,6 @@ export function PracticeQuestionsView() {
       const items = parsePracticeQuestionItems(data.questions);
       setQuestions((previous) => (append ? [...previous, ...items] : items));
       setNextOffset(typeof data.nextOffset === "number" ? data.nextOffset : (append ? nextOffset : items.length));
-      setSource(data.source ?? "fallback");
 
       if (isResumeProfileShape(data.resumeProfile)) {
         setResumeProfile(data.resumeProfile);
@@ -258,7 +346,58 @@ export function PracticeQuestionsView() {
       title="AI Mock Interview Engine"
       description="Generate tailored interview questions from your latest resume analysis and keep practicing in focused batches of 5."
     >
+      <input
+        ref={resumeFileInputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        className="hidden"
+        onChange={handleResumeFileChange}
+      />
+
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="group relative overflow-hidden rounded-2xl border border-cyan-300/30 bg-linear-to-br from-cyan-400/44 via-teal-500/24 to-slate-950/80 text-slate-50 backdrop-blur-xl shadow-[0_16px_34px_rgba(8,15,30,0.38)] ring-1 ring-white/8 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_38px_rgba(8,15,30,0.52)]">
+          <span className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-cyan-300/26 blur-2xl" />
+          <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-white/65 to-transparent opacity-70" />
+
+          <CardContent className="relative p-6 sm:p-7">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <p className="text-sm font-medium text-slate-100">Resume Context</p>
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-200/45 bg-slate-950/40 text-cyan-100">
+                <Upload className="h-4 w-4" />
+              </div>
+            </div>
+
+            <p className="text-3xl font-semibold tracking-tight text-white">
+              {uploadingResume ? "Analyzing..." : resumeProfile ? "Resume Linked" : "Upload PDF"}
+            </p>
+
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <span className="inline-flex rounded-full border border-cyan-200/55 bg-slate-950/44 px-2.5 py-1 text-xs font-semibold text-cyan-100">
+                PDF up to 5MB
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-white/35 bg-slate-900/72 text-slate-100 hover:bg-slate-800/78 hover:text-white"
+                onClick={handleResumeUploadClick}
+                disabled={uploadingResume}
+              >
+                {uploadingResume ? "Uploading..." : resumeProfile ? "Replace" : "Upload"}
+              </Button>
+            </div>
+
+            <p className="mt-3 text-xs text-slate-200/90">
+              {resumeProfile
+                ? `Using ${resumeProfile.sourceFileName} for question context.`
+                : "No resume linked yet. Upload your PDF to enable personalized questions."}
+            </p>
+
+            {resumeProfile ? (
+              <p className="mt-1 text-xs text-slate-300">Last analyzed: {resumeProfile.lastAnalyzedAt}</p>
+            ) : null}
+          </CardContent>
+        </Card>
+
         <MetricCard
           label="Target Role"
           value={resumeProfile?.targetRole ?? "Not available"}
@@ -283,34 +422,49 @@ export function PracticeQuestionsView() {
           tone="sky"
           icon={<ListChecks className="h-4 w-4" />}
         />
-        <MetricCard
-          label="AI Source"
-          value={source === "gemini" ? "Gemini" : source === "fallback" ? "Fallback" : "Waiting"}
-          change={source === "gemini" ? "Live AI generated" : "Rule-based backup"}
-          helperText="Switches automatically on errors"
-          tone="rose"
-          icon={<CircleHelp className="h-4 w-4" />}
-        />
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-3">
+      <section className="grid gap-5">
         <DashboardPanel
-          className="xl:col-span-2"
           title="Interview Session"
           description="Start the session, choose your level, and practice tailored questions with model answers."
         >
           {!resumeProfile ? (
             <div className={glassItemCardClass}>
               <p className="text-sm text-slate-200">
-                No resume context found. Upload and analyze your resume first, then return here.
+                No resume context found. Upload your resume here and we will use it immediately for interview questions.
               </p>
-              <Button
-                type="button"
-                className="mt-4 bg-white text-slate-900 hover:bg-slate-200"
-                onClick={() => router.push("/dashboard/resume-analyzer")}
-              >
-                Go To Resume Analyzer
-              </Button>
+
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Button
+                  type="button"
+                  className="bg-white text-slate-900 hover:bg-slate-200"
+                  onClick={handleResumeUploadClick}
+                  disabled={uploadingResume}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {uploadingResume ? "Analyzing Resume..." : "Upload Resume PDF"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-white/35 bg-slate-900/72 text-slate-100 hover:bg-slate-800/78 hover:text-white"
+                  onClick={() => router.push("/dashboard/resume-analyzer")}
+                >
+                  Open Full Analyzer
+                </Button>
+              </div>
+
+              {resumeUploadError ? (
+                <p className="mt-3 text-sm text-rose-200" role="alert">
+                  {resumeUploadError}
+                </p>
+              ) : null}
+
+              {resumeUploadSuccess ? (
+                <p className="mt-3 text-sm text-emerald-200">{resumeUploadSuccess}</p>
+              ) : null}
             </div>
           ) : (
             <>
@@ -386,34 +540,6 @@ export function PracticeQuestionsView() {
           )}
         </DashboardPanel>
 
-        <DashboardPanel title="Resume Context" description="Questions are generated from your latest analyzed resume.">
-          <div className="space-y-3">
-            <div className={glassItemCardClass}>
-              <p className="text-xs uppercase tracking-wide text-slate-300">Summary</p>
-              <p className="mt-2 text-sm text-slate-100">{resumeProfile?.summary ?? "Not available yet"}</p>
-            </div>
-
-            <div className={glassItemCardClass}>
-              <p className="text-xs uppercase tracking-wide text-slate-300">Top Skills</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(resumeProfile?.topSkills ?? []).slice(0, 8).map((skill, index) => (
-                  <StatusBadge key={`${skill}-${index}`} tone="success">
-                    {skill}
-                  </StatusBadge>
-                ))}
-              </div>
-            </div>
-
-            <div className={glassItemCardClass}>
-              <p className="text-xs uppercase tracking-wide text-slate-300">Interview Focus Areas</p>
-              <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-slate-100">
-                {(resumeProfile?.focusAreas ?? []).slice(0, 6).map((focus, index) => (
-                  <li key={`${focus}-${index}`}>{focus}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </DashboardPanel>
       </section>
     </DashboardPageShell>
   );

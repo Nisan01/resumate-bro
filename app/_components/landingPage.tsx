@@ -153,6 +153,7 @@ function Navbar() {
             className="hamburger"
             onClick={() => setMobileOpen((o) => !o)}
             aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
           >
             <span /><span /><span />
           </button>
