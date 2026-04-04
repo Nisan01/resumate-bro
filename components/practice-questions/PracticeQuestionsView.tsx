@@ -1,16 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   DashboardPageShell,
-  DashboardPanel,
-  MetricCard,
   StatusBadge,
 } from "@/components/shared/dashboard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Brain, ListChecks, Sparkles, Upload } from "lucide-react";
+import {
+  Brain,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  ListChecks,
+  Play,
+  RefreshCw,
+  SlidersHorizontal,
+  Sparkles,
+  Upload,
+} from "lucide-react";
 import {
   LOCAL_RESUME_PROFILE_KEY,
   type InterviewDifficulty,
@@ -79,7 +87,7 @@ function isResumeProfileShape(value: unknown): value is ResumeProfile {
 }
 
 const glassItemCardClass =
-  "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
+  "rounded-2xl border border-white/24 bg-linear-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
 const MAX_RESUME_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -98,6 +106,37 @@ const difficultyConfig: Array<{ key: InterviewDifficulty; label: string; helper:
     key: "advanced",
     label: "Advanced",
     helper: "Complex scenario and trade-offs",
+  },
+];
+
+const settingsPanelClass =
+  "rounded-2xl border border-white/10 bg-linear-to-br from-slate-950/72 via-slate-900/56 to-slate-800/45 p-6 sm:p-7 shadow-[0_20px_42px_rgba(2,8,24,0.38)] backdrop-blur-xl";
+
+type SectionKey = "resume" | "session" | "questions";
+
+const sectionItems: Array<{
+  key: SectionKey;
+  label: string;
+  helper: string;
+  icon: ReactNode;
+}> = [
+  {
+    key: "resume",
+    label: "Resume Context",
+    helper: "Upload and linked profile",
+    icon: <FileText className="h-4 w-4" />,
+  },
+  {
+    key: "session",
+    label: "Interview Session",
+    helper: "Start and difficulty",
+    icon: <SlidersHorizontal className="h-4 w-4" />,
+  },
+  {
+    key: "questions",
+    label: "Questions",
+    helper: "Generated Q&A stream",
+    icon: <ListChecks className="h-4 w-4" />,
   },
 ];
 
@@ -156,12 +195,27 @@ function validateResumeFile(file: File): string | null {
   return null;
 }
 
+function formatAnalyzedAt(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return parsed.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
 export function PracticeQuestionsView() {
   const router = useRouter();
   const resumeFileInputRef = useRef<HTMLInputElement | null>(null);
+  const resumeSectionRef = useRef<HTMLElement | null>(null);
+  const sessionSectionRef = useRef<HTMLElement | null>(null);
+  const questionsSectionRef = useRef<HTMLElement | null>(null);
   const [resumeProfile, setResumeProfile] = useState<ResumeProfile | null>(null);
+  const [activeSection, setActiveSection] = useState<SectionKey>("resume");
   const [started, setStarted] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<InterviewDifficulty | null>(null);
+  const [showAnswers, setShowAnswers] = useState(true);
   const [questions, setQuestions] = useState<PracticeQuestionItem[]>([]);
   const [nextOffset, setNextOffset] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -169,6 +223,41 @@ export function PracticeQuestionsView() {
   const [uploadingResume, setUploadingResume] = useState(false);
   const [resumeUploadError, setResumeUploadError] = useState("");
   const [resumeUploadSuccess, setResumeUploadSuccess] = useState("");
+
+  useEffect(() => {
+    const sectionMap: Record<SectionKey, HTMLElement | null> = {
+      resume: resumeSectionRef.current,
+      session: sessionSectionRef.current,
+      questions: questionsSectionRef.current,
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        const top = visible[0];
+        if (!top) return;
+
+        const key = top.target.getAttribute("data-section") as SectionKey | null;
+        if (key && sectionMap[key]) {
+          setActiveSection(key);
+        }
+      },
+      {
+        threshold: [0.2, 0.4, 0.65],
+        rootMargin: "-18% 0px -52% 0px",
+      },
+    );
+
+    const sections = Object.values(sectionMap).filter((value): value is HTMLElement => Boolean(value));
+    sections.forEach((section) => observer.observe(section));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -210,6 +299,22 @@ export function PracticeQuestionsView() {
   }, []);
 
   const canGenerate = useMemo(() => Boolean(resumeProfile && selectedDifficulty), [resumeProfile, selectedDifficulty]);
+  const selectedDifficultyLabel = formatDifficultyLabel(selectedDifficulty);
+
+  const scrollToSection = (section: SectionKey) => {
+    setActiveSection(section);
+
+    const sectionMap: Record<SectionKey, React.RefObject<HTMLElement | null>> = {
+      resume: resumeSectionRef,
+      session: sessionSectionRef,
+      questions: questionsSectionRef,
+    };
+
+    sectionMap[section].current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   const resetInterviewState = () => {
     setStarted(false);
@@ -328,11 +433,13 @@ export function PracticeQuestionsView() {
   const handleStartInterview = () => {
     setStarted(true);
     setErrorMessage("");
+    setActiveSection("session");
   };
 
   const handleDifficultySelect = (difficulty: InterviewDifficulty) => {
     setSelectedDifficulty(difficulty);
     void requestQuestions(difficulty, false);
+    setActiveSection("questions");
   };
 
   const handleMoreQuestions = () => {
@@ -340,11 +447,16 @@ export function PracticeQuestionsView() {
     void requestQuestions(selectedDifficulty, true);
   };
 
+  const handleSessionReset = () => {
+    resetInterviewState();
+    setShowAnswers(true);
+  };
+
   return (
     <DashboardPageShell
       eyebrow="Practice Questions"
       title="AI Mock Interview Engine"
-      description="Generate tailored interview questions from your latest resume analysis and keep practicing in focused batches of 5."
+      description="Settings-style workflow for resume-linked interview practice with controlled session flow and generated answer review."
     >
       <input
         ref={resumeFileInputRef}
@@ -354,192 +466,301 @@ export function PracticeQuestionsView() {
         onChange={handleResumeFileChange}
       />
 
-      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="group relative overflow-hidden rounded-2xl border border-cyan-300/30 bg-linear-to-br from-cyan-400/44 via-teal-500/24 to-slate-950/80 text-slate-50 backdrop-blur-xl shadow-[0_16px_34px_rgba(8,15,30,0.38)] ring-1 ring-white/8 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_38px_rgba(8,15,30,0.52)]">
-          <span className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-cyan-300/26 blur-2xl" />
-          <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-white/65 to-transparent opacity-70" />
+      <section className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
+        <aside
+          className="rounded-2xl border border-white/10 bg-linear-to-br from-slate-950/78 via-slate-900/62 to-slate-800/42 p-2.5 shadow-[0_16px_34px_rgba(2,8,24,0.35)] backdrop-blur-xl xl:sticky xl:top-20 xl:h-fit"
+          aria-label="Practice question navigation"
+        >
+          <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            Session Navigation
+          </p>
+          {sectionItems.map((item) => {
+            const active = activeSection === item.key;
 
-          <CardContent className="relative p-6 sm:p-7">
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <p className="text-sm font-medium text-slate-100">Resume Context</p>
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-200/45 bg-slate-950/40 text-cyan-100">
+            return (
+              <button
+                key={item.key}
+                type="button"
+                className={`mb-1.5 flex w-full items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-left transition-all ${
+                  active
+                    ? "border-violet-200/35 bg-violet-300/14 text-violet-100"
+                    : "border-transparent bg-transparent text-slate-300 hover:border-violet-200/18 hover:bg-white/5 hover:text-slate-100"
+                }`}
+                onClick={() => scrollToSection(item.key)}
+              >
+                <span className="opacity-80">{item.icon}</span>
+                <span>
+                  <span className="block text-sm font-medium">{item.label}</span>
+                  <span className="block text-xs text-slate-400">{item.helper}</span>
+                </span>
+              </button>
+            );
+          })}
+          <div className="mt-3 rounded-xl border border-white/10 bg-slate-950/60 p-3 text-xs text-slate-300">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Match Profile</p>
+            <p className="mt-1 text-xs text-slate-200">{resumeProfile?.targetRole ?? "Not linked"}</p>
+          </div>
+        </aside>
+
+        <div className="space-y-5">
+          <section ref={resumeSectionRef} data-section="resume" className={`${settingsPanelClass} scroll-mt-24`}>
+            <div className="mb-5 flex items-center gap-3 border-b border-white/8 pb-4">
+              <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-violet-200/35 bg-violet-300/10 text-violet-100">
                 <Upload className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-slate-100">Resume Context</p>
+                <p className="text-xs text-slate-400">Upload once and keep questions aligned to your profile.</p>
               </div>
             </div>
 
-            <p className="text-3xl font-semibold tracking-tight text-white">
-              {uploadingResume ? "Analyzing..." : resumeProfile ? "Resume Linked" : "Upload PDF"}
-            </p>
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+              <div className={glassItemCardClass}>
+                <p className="text-xs uppercase tracking-[0.14em] text-violet-200/80">Linked Profile</p>
+                <p className="mt-2 text-2xl font-semibold text-white">
+                  {uploadingResume ? "Analyzing..." : resumeProfile ? "Resume Linked" : "Upload PDF"}
+                </p>
+                <p className="mt-2 text-sm text-slate-300">
+                  {resumeProfile
+                    ? `Using ${resumeProfile.sourceFileName} for role-specific interview generation.`
+                    : "No resume linked yet. Upload a PDF to unlock personalized interview questions."}
+                </p>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <span className="inline-flex rounded-full border border-cyan-200/55 bg-slate-950/44 px-2.5 py-1 text-xs font-semibold text-cyan-100">
-                PDF up to 5MB
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                className="border-white/35 bg-slate-900/72 text-slate-100 hover:bg-slate-800/78 hover:text-white"
-                onClick={handleResumeUploadClick}
-                disabled={uploadingResume}
-              >
-                {uploadingResume ? "Uploading..." : resumeProfile ? "Replace" : "Upload"}
-              </Button>
-            </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-white/12 bg-slate-950/65 p-3">
+                    <p className="text-xs text-slate-400">Target Role</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-100">
+                      {resumeProfile?.targetRole ?? "Not available"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-white/12 bg-slate-950/65 p-3">
+                    <p className="text-xs text-slate-400">Top Skills</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-100">
+                      {resumeProfile?.topSkills.slice(0, 3).join(" • ") || "Not available"}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-            <p className="mt-3 text-xs text-slate-200/90">
-              {resumeProfile
-                ? `Using ${resumeProfile.sourceFileName} for question context.`
-                : "No resume linked yet. Upload your PDF to enable personalized questions."}
-            </p>
-
-            {resumeProfile ? (
-              <p className="mt-1 text-xs text-slate-300">Last analyzed: {resumeProfile.lastAnalyzedAt}</p>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        <MetricCard
-          label="Target Role"
-          value={resumeProfile?.targetRole ?? "Not available"}
-          change={resumeProfile ? "Resume linked" : "Analyze resume first"}
-          helperText="Pulled from latest resume analysis"
-          tone="teal"
-          icon={<Sparkles className="h-4 w-4" />}
-        />
-        <MetricCard
-          label="Current Level"
-          value={formatDifficultyLabel(selectedDifficulty)}
-          change={selectedDifficulty ? "Question stream active" : "Choose after start"}
-          helperText="Controls depth and complexity"
-          tone="amber"
-          icon={<Brain className="h-4 w-4" />}
-        />
-        <MetricCard
-          label="Questions Generated"
-          value={String(questions.length)}
-          change={questions.length > 0 ? `Next batch starts at #${nextOffset + 1}` : "No questions yet"}
-          helperText="5 questions per generation"
-          tone="sky"
-          icon={<ListChecks className="h-4 w-4" />}
-        />
-      </section>
-
-      <section className="grid gap-5">
-        <DashboardPanel
-          title="Interview Session"
-          description="Start the session, choose your level, and practice tailored questions with model answers."
-        >
-          {!resumeProfile ? (
-            <div className={glassItemCardClass}>
-              <p className="text-sm text-slate-200">
-                No resume context found. Upload your resume here and we will use it immediately for interview questions.
-              </p>
-
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="rounded-2xl border border-white/12 bg-slate-950/62 p-4 shadow-[0_14px_26px_rgba(2,8,24,0.32)] backdrop-blur-md">
+                <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Actions</p>
                 <Button
                   type="button"
-                  className="bg-white text-slate-900 hover:bg-slate-200"
+                  className="mt-3 w-full bg-white text-slate-900 hover:bg-slate-200"
                   onClick={handleResumeUploadClick}
                   disabled={uploadingResume}
                 >
                   <Upload className="mr-2 h-4 w-4" />
-                  {uploadingResume ? "Analyzing Resume..." : "Upload Resume PDF"}
+                  {uploadingResume ? "Analyzing Resume..." : resumeProfile ? "Replace Resume" : "Upload Resume PDF"}
                 </Button>
-
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-white/35 bg-slate-900/72 text-slate-100 hover:bg-slate-800/78 hover:text-white"
+                  className="mt-2 w-full border-white/25 bg-slate-900/72 text-slate-100 hover:bg-slate-800/78 hover:text-white"
                   onClick={() => router.push("/dashboard/resume-analyzer")}
                 >
                   Open Full Analyzer
                 </Button>
+                {resumeProfile ? (
+                  <p className="mt-3 text-xs text-slate-400">
+                    Last analyzed: {formatAnalyzedAt(resumeProfile.lastAnalyzedAt)}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            {resumeUploadError ? (
+              <p className="mt-3 rounded-lg border border-rose-300/30 bg-rose-400/10 px-3 py-2 text-sm text-rose-200" role="alert">
+                {resumeUploadError}
+              </p>
+            ) : null}
+
+            {resumeUploadSuccess ? (
+              <p className="mt-3 rounded-lg border border-emerald-300/30 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-200">
+                {resumeUploadSuccess}
+              </p>
+            ) : null}
+          </section>
+
+          <section ref={sessionSectionRef} data-section="session" className={`${settingsPanelClass} scroll-mt-24`}>
+            <div className="mb-5 flex items-center gap-3 border-b border-white/8 pb-4">
+              <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-violet-200/35 bg-violet-300/10 text-violet-100">
+                <Brain className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-slate-100">Interview Session</p>
+                <p className="text-xs text-slate-400">Start the flow and choose level before generating questions.</p>
+              </div>
+            </div>
+
+            {!resumeProfile ? (
+              <div className={glassItemCardClass}>
+                <p className="text-sm text-slate-200">
+                  Resume context is required before starting interview mode. Upload a resume first.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className={glassItemCardClass}>
+                    <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Session State</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <StatusBadge tone={started ? "success" : "warning"}>{started ? "Started" : "Waiting"}</StatusBadge>
+                      <StatusBadge tone={selectedDifficulty ? "info" : "neutral"}>{selectedDifficultyLabel}</StatusBadge>
+                      <StatusBadge tone={questions.length > 0 ? "success" : "neutral"}>{questions.length} questions</StatusBadge>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        className="bg-white text-slate-900 hover:bg-slate-200"
+                        onClick={handleStartInterview}
+                        disabled={loading || started}
+                      >
+                        <Play className="mr-2 h-4 w-4" />
+                        {started ? "Session Running" : "Start Question Answer"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-white/25 bg-slate-900/72 text-slate-100 hover:bg-slate-800/78 hover:text-white"
+                        onClick={handleSessionReset}
+                        disabled={loading && questions.length > 0}
+                      >
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className={glassItemCardClass}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-100">Show model answers</p>
+                        <p className="mt-1 text-xs text-slate-400">Toggle answer visibility in generated cards.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowAnswers((current) => !current)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full border transition-all ${
+                          showAnswers
+                            ? "border-violet-200/45 bg-linear-to-r from-violet-300/70 to-cyan-300/60"
+                            : "border-white/18 bg-white/15"
+                        }`}
+                        aria-label="Toggle model answer visibility"
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform rounded-full bg-slate-950 transition-all ${
+                            showAnswers ? "translate-x-5" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {difficultyConfig.map((level) => (
+                    <button
+                      key={level.key}
+                      type="button"
+                      onClick={() => handleDifficultySelect(level.key)}
+                      className={`rounded-xl border p-4 text-left transition-all ${
+                        selectedDifficulty === level.key
+                          ? "border-violet-200/65 bg-violet-300/15"
+                          : "border-white/24 bg-slate-900/55 hover:border-cyan-200/45 hover:bg-slate-900/75"
+                      } ${!started ? "cursor-not-allowed opacity-60" : ""}`}
+                      disabled={loading || !started}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-slate-100">{level.label}</p>
+                        {selectedDifficulty === level.key ? (
+                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-300/20 text-violet-100">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 text-xs text-slate-300">{level.helper}</p>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+
+          <section ref={questionsSectionRef} data-section="questions" className={`${settingsPanelClass} scroll-mt-24`}>
+            <div className="mb-5 flex items-center justify-between gap-3 border-b border-white/8 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-violet-200/35 bg-violet-300/10 text-violet-100">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-base font-semibold text-slate-100">Generated Questions</p>
+                  <p className="text-xs text-slate-400">Practice questions with focus areas and optional answer hints.</p>
+                </div>
               </div>
 
-              {resumeUploadError ? (
-                <p className="mt-3 text-sm text-rose-200" role="alert">
-                  {resumeUploadError}
-                </p>
-              ) : null}
-
-              {resumeUploadSuccess ? (
-                <p className="mt-3 text-sm text-emerald-200">{resumeUploadSuccess}</p>
-              ) : null}
+              <StatusBadge tone="info">Next offset: {nextOffset}</StatusBadge>
             </div>
-          ) : (
-            <>
-              {!started ? (
-                <div className={glassItemCardClass}>
-                  <p className="text-sm text-slate-200">
-                    Ready to begin? Click start and pick your interview level.
-                  </p>
-                  <Button
-                    type="button"
-                    className="mt-4 bg-white text-slate-900 hover:bg-slate-200"
-                    onClick={handleStartInterview}
-                  >
-                    Start Question Answer
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {difficultyConfig.map((level) => (
-                      <button
-                        key={level.key}
-                        type="button"
-                        onClick={() => handleDifficultySelect(level.key)}
-                        className={`rounded-xl border p-4 text-left transition-all ${
-                          selectedDifficulty === level.key
-                            ? "border-cyan-200/65 bg-cyan-300/15"
-                            : "border-white/24 bg-slate-900/55 hover:border-cyan-200/45 hover:bg-slate-900/75"
-                        }`}
-                        disabled={loading}
-                      >
-                        <p className="text-sm font-semibold text-slate-100">{level.label}</p>
-                        <p className="mt-1 text-xs text-slate-300">{level.helper}</p>
-                      </button>
-                    ))}
-                  </div>
 
-                  {errorMessage ? (
-                    <p className="text-sm text-rose-200" role="alert">
-                      {errorMessage}
+            {errorMessage ? (
+              <p className="mb-3 rounded-lg border border-rose-300/30 bg-rose-400/10 px-3 py-2 text-sm text-rose-200" role="alert">
+                {errorMessage}
+              </p>
+            ) : null}
+
+            {questions.length === 0 ? (
+              <div className={glassItemCardClass}>
+                <div className="flex items-start gap-3">
+                  <Clock3 className="mt-0.5 h-5 w-5 text-slate-400" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-100">No questions generated yet</p>
+                    <p className="mt-1 text-sm text-slate-300">
+                      Start the interview session, choose a difficulty level, and your first batch of 5 questions will appear here.
                     </p>
-                  ) : null}
-
-                  <div className="space-y-3">
-                    {questions.map((item, index) => (
-                      <article key={`${item.id}-${index}`} className={glassItemCardClass}>
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-semibold text-slate-100">Question {index + 1}</p>
-                          <StatusBadge tone="info">{item.focusArea}</StatusBadge>
-                        </div>
-                        <p className="mt-3 text-sm text-slate-100">{item.question}</p>
-                        <p className="mt-3 rounded-lg border border-emerald-200/30 bg-emerald-400/10 p-3 text-sm text-emerald-100">
-                          Suggested answer: {item.answer}
-                        </p>
-                      </article>
-                    ))}
                   </div>
-
-                  {canGenerate ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="border-white/35 bg-slate-900/72 text-slate-100 hover:bg-slate-800/78 hover:text-white"
-                      onClick={handleMoreQuestions}
-                      disabled={loading}
-                    >
-                      {loading ? "Generating..." : "More 5 Questions"}
-                    </Button>
-                  ) : null}
                 </div>
-              )}
-            </>
-          )}
-        </DashboardPanel>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {questions.map((item, index) => (
+                  <article key={`${item.id}-${index}`} className={glassItemCardClass}>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-slate-100">Question {index + 1}</p>
+                      <div className="flex items-center gap-2">
+                        <StatusBadge tone="info">{item.focusArea}</StatusBadge>
+                        <StatusBadge tone="success">
+                          <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                          Ready
+                        </StatusBadge>
+                      </div>
+                    </div>
 
+                    <p className="mt-3 text-sm text-slate-100">{item.question}</p>
+
+                    {showAnswers ? (
+                      <p className="mt-3 rounded-lg border border-emerald-200/30 bg-emerald-400/10 p-3 text-sm text-emerald-100">
+                        Suggested answer: {item.answer}
+                      </p>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {canGenerate ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4 border-white/35 bg-slate-900/72 text-slate-100 hover:bg-slate-800/78 hover:text-white"
+                onClick={handleMoreQuestions}
+                disabled={loading}
+              >
+                {loading ? "Generating..." : "More 5 Questions"}
+              </Button>
+            ) : null}
+          </section>
+        </div>
       </section>
     </DashboardPageShell>
   );
