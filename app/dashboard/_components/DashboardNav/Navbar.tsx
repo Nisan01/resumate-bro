@@ -36,10 +36,12 @@ function DashBoardNav() {
   };
 
 const isActive = (path: string) => {
-  if (!currentPath) return false;
-  if (path === "") return currentPath === "/dashboard";
-  return currentPath.startsWith(`/dashboard/${path}`);
-};
+    if (path === "") {
+      // Only active when exactly on /dashboard, not on sub-routes
+      return currentPath === "/dashboard" || currentPath === "/dashboard/";
+    }
+    return currentPath?.startsWith(`/dashboard/${path}`);
+  };
   return (
     <>
       {expanded && (
@@ -52,36 +54,74 @@ const isActive = (path: string) => {
       <aside
         className={`
           h-full flex flex-col p-2 overflow-hidden z-30 relative
-          ${expanded ? 'w-56 lg:w-72' : 'w-20'}
+          bg-purple-400/5 backdrop-blur-xl border-r border-white/10
+          ${expanded ? 'w-[220px] lg:w-[300px]' : 'w-[77px]'}
         `}
         style={{
           transition: 'width 0.6s cubic-bezier(0.65, 0, 0.35, 1)',
-          background: 'linear-gradient(180deg, #0a0f2e 0%, #0d1540 30%, #0b1535 60%, #080d24 100%)',
-          borderRight: '1px solid rgba(99, 130, 220, 0.12)',
         }}
       >
 
-        {/* ── Header ── */}
-        <div
-          className={`flex items-center h-16 transition-all duration-300 shrink-0 ${expanded ? 'px-3 gap-3' : 'px-3 gap-3'}`}
-          style={{ borderBottom: '1px solid rgba(99, 130, 220, 0.1)' }}
-        >
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="shrink-0 flex items-center justify-center"
-            aria-label="Toggle sidebar"
-          >
-          <div className={`sm:w-9 sm:h-9 rounded-xl ${avatarGradientClass} from-[#c4b0ff] via-[#7ee8fa] to-[#ff9de2] flex items-center justify-center text-[10px] sm:text-xl text-[#0a0714] shadow-[0_4px_16px_rgba(196,176,255,0.36)]`}>R</div>
-          </button>
-          <div
-            className={`overflow-hidden transition-all duration-300 ${expanded ? 'max-w-50 opacity-100' : 'max-w-0 opacity-0 pointer-events-none'}`}
-            style={{ transition: 'max-width 0.6s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.6s cubic-bezier(0.65, 0, 0.35, 1)' }}
-          >
-            <h2 className="text-[15px] font-semibold whitespace-nowrap leading-tight" style={{ color: '#e2e8f0' }}>
-              ResuMate
-            </h2>
-          </div>
-        </div>
+{/* ── Header ── */}
+<div
+  className={`
+    flex items-center h-[64px] transition-all duration-500 shrink-0 border-b border-white/10
+    ${expanded ? 'px-4' : 'px-[13px]'}
+  `}
+>
+  <button
+    onClick={() => setExpanded(!expanded)}
+    className="group shrink-0 flex items-center justify-center transition-transform active:scale-95"
+    aria-label="Toggle sidebar"
+  >
+    {/* 1. CONTAINER WITH SPLIT RING EFFECT */}
+    <div className={`
+      relative flex items-center justify-center rounded-full
+      transition-all duration-500 ease-in-out
+      ${expanded ? 'w-9 h-9' : 'w-8 h-8'}
+
+      /* THE "BEFORE" ARC (Top) */
+      before:content-[""] before:absolute before:inset-[-4px] before:rounded-full
+      before:border-2 before:border-transparent before:border-t-[#c4b0ff]
+      before:shadow-[0_-5px_10px_rgba(196,176,255,0.3)]
+
+      /* THE "AFTER" ARC (Bottom) */
+      after:content-[""] after:absolute after:inset-[-4px] after:rounded-full
+      after:border-2 after:border-transparent after:border-b-[#c4b0ff]
+      after:shadow-[0_5px_10px_rgba(196,176,255,0.3)]
+    `}>
+      
+      {/* 2. INNER IMAGE (The actual circle) */}
+      <div className="relative w-full h-full rounded-full overflow-hidden border border-white/10 bg-black/20">
+        <Image 
+          src="/logo.png" 
+          alt="Resumate Logo" 
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+
+      {/* 3. HOVER ROTATION EFFECT (Optional but cool) */}
+      <div className="absolute inset-[-4px] rounded-full border-2 border-transparent group-hover:rotate-180 transition-transform duration-700 ease-in-out" />
+    </div>
+  </button>
+
+  {/* 4. THE NAME */}
+  <div
+    className="overflow-hidden transition-all flex items-center"
+    style={{ 
+      transitionDuration: '0.6s',
+      transitionTimingFunction: 'cubic-bezier(0.65, 0, 0.35, 1)',
+      maxWidth: expanded ? '150px' : '0px',
+      opacity: expanded ? 1 : 0,
+    }}
+  >
+    <h2 className="text-[16px] font-bold whitespace-nowrap tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent ml-4">
+      ResuMate
+    </h2>
+  </div>
+</div>
 
 <ul className="flex flex-col gap-1 mt-2 p-1 flex-1 overflow-y-auto">
   {navItems.map((item, index) => {
@@ -101,9 +141,21 @@ const isActive = (path: string) => {
           `}
         >
           <Icon className="shrink-0 w-5 h-5" />
-          <span className={`text-sm font-normal whitespace-nowrap overflow-hidden block ${expanded ? 'max-w-50 opacity-100' : 'max-w-0 opacity-0'}`}>
-            {item.label}
-          </span>
+         <span 
+  className={`
+    text-sm font-normal whitespace-nowrap overflow-hidden transition-all
+    ${expanded ? 'opacity-100' : 'opacity-0'}
+  `}
+  style={{ 
+    /* Match the sidebar's timing exactly */
+    transitionDuration: '0.6s',
+    transitionTimingFunction: 'cubic-bezier(0.65, 0, 0.35, 1)',
+    /* Ensure the width also animates so it doesn't push the icon */
+    maxWidth: expanded ? '200px' : '0px' 
+  }}
+>
+  {item.label}
+</span>
         </div>
       </li>
     );
@@ -112,29 +164,50 @@ const isActive = (path: string) => {
 
 
 {/* ── User Footer ── */}
-<div className="p-2 border-t border-[rgba(99,130,220,0.1)]">
+{/* ── User Footer ── */}
+<div className="p-2 border-t border-white/10">
   <div
     className={`
       flex items-center rounded-lg cursor-pointer transition-all duration-300
-      ${expanded ? 'px-2 py-2 gap-3' : ' py-2 px-1.5'}
+      ${expanded ? 'px-2 py-2 gap-3' : 'py-2 px-1.5 gap-0'}
       hover:bg-white/10
     `}
   >
-    {/* White circle wrapper */}
-    <div className="bg-white rounded-full p-0.5 shrink-0">
-      <Image
-        src={user?.avatarUrl || `https://api.dicebear.com/9.x/pixel-art/svg?seed=${user?.name || 'User'}`}
-        alt={user?.name || 'User'}
-        width={expanded ? 32 : 26}
-        height={expanded ? 32 : 26}
-        className="rounded-full"
-      />
-    </div>
+ {/* Avatar Wrapper - This handles the border and background */}
+<div className="bg-white rounded-full p-[4px] shrink-0 shadow-sm">
+  {/* Animation Wrapper - This handles the smooth scaling */}
+  <div 
+    className="relative overflow-hidden rounded-full transition-all"
+    style={{ 
+      transitionDuration: '0.6s',
+      transitionTimingFunction: 'cubic-bezier(0.65, 0, 0.35, 1)',
+      // Instead of changing width props, we scale the entire element
+      transform: expanded ? 'scale(1)' : 'scale(0.85)',
+      width: '32px',
+      height: '32px'
+    }}
+  >
+    <Image
+      src={user?.avatarUrl || `https://api.dicebear.com/9.x/pixel-art/svg?seed=${user?.name || 'User'}`}
+      alt={user?.name || 'User'}
+      fill // Use fill so it stays pinned to the animated wrapper
+      className="rounded-full object-cover"
+    />
+  </div>
+</div>
 
-    <div className={`
-      flex flex-col min-w-0 flex-1 overflow-hidden transition-all duration-300
-      ${expanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}
-    `}>
+    {/* Text Container with Sync'd Animation */}
+    <div 
+      className={`
+        flex flex-col min-w-0 flex-1 overflow-hidden transition-all
+        ${expanded ? 'opacity-100 ml-1' : 'opacity-0 ml-1'}
+      `}
+      style={{ 
+        transitionDuration: '0.6s',
+        transitionTimingFunction: 'cubic-bezier(0.65, 0, 0.35, 1)',
+        maxWidth: expanded ? '200px' : '0px' 
+      }}
+    >
       <span className="text-[13px] font-medium truncate leading-tight text-gray-200">
         {user?.name || user?.id || "Loading..."}
       </span>
@@ -143,9 +216,12 @@ const isActive = (path: string) => {
       </span>
     </div>
 
-    {expanded && (
+    {/* Ellipsis with Sync'd Fade */}
+    <div 
+      className={`transition-all duration-500 ${expanded ? 'opacity-100' : 'opacity-0 w-0'}`}
+    >
       <EllipsisVertical size={16} className="shrink-0 text-gray-300" />
-    )}
+    </div>
   </div>
 </div>
 
