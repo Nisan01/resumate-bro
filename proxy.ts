@@ -4,13 +4,13 @@ import { verifyToken } from "@/utils/db/db-operations/jwt/jwt";
 
 const AUTH_ROUTES = ["/sign-in", "/sign-up"];
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("auth_token")?.value;
 
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
   if (isAuthRoute && token) {
-    const payload = verifyToken(token);
+    const payload = await verifyToken(token);
     if (payload) {
       return NextResponse.redirect(new URL("/dashboard", request.url)); // redirect to home
     }
@@ -22,7 +22,7 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
-    const payload = verifyToken(token);
+    const payload = await verifyToken(token);
     if (!payload) {
       const response = NextResponse.redirect(new URL("/sign-in", request.url));
       response.cookies.delete("auth_token");

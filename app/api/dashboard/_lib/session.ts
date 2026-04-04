@@ -1,4 +1,8 @@
 import { cookies } from "next/headers";
+import {
+  isAuthDevFallbackEnabled,
+  isDevFallbackUserId,
+} from "@/lib/server/auth-dev-fallback";
 import { verifyToken } from "@/utils/db/db-operations/jwt/jwt";
 import { getUserByEmail } from "@/utils/db/db-operations/user";
 
@@ -12,22 +16,14 @@ export interface DashboardSession {
 export async function getDashboardSession(): Promise<DashboardSession | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
+  const allowDevFallback = isAuthDevFallbackEnabled();
 
   if (!token) return null;
 
-  const decoded = verifyToken(token);
+  const decoded = await verifyToken(token);
   if (!decoded?.email) return null;
 
   const normalizedEmail = decoded.email.trim().toLowerCase();
-
-  if (decoded.id) {
-    return {
-      userId: decoded.id,
-      email: normalizedEmail,
-      name: decoded.name,
-      avatarUrl: decoded.avatarUrl ?? null,
-    };
-  }
 
   try {
     const user = await getUserByEmail(normalizedEmail);
@@ -40,14 +36,25 @@ export async function getDashboardSession(): Promise<DashboardSession | null> {
         avatarUrl: user.avatarUrl ?? null,
       };
     }
+
+    if (allowDevFallback && isDevFallbackUserId(decoded.id)) {
+      return {
+        userId: decoded.id,
+        email: normalizedEmail,
+        name: decoded.name,
+        avatarUrl: null,
+      };
+    }
   } catch {
-    // Fall through to token-only fallback for local development.
+    if (allowDevFallback && isDevFallbackUserId(decoded.id)) {
+      return {
+        userId: decoded.id,
+        email: normalizedEmail,
+        name: decoded.name,
+        avatarUrl: null,
+      };
+    }
   }
 
-  return {
-    userId: `dev-${normalizedEmail}`,
-    email: normalizedEmail,
-    name: decoded.name,
-    avatarUrl: decoded.avatarUrl ?? null,
-  };
+  return null;
 }

@@ -58,12 +58,23 @@ export async function POST(request: Request) {
       cookieStore.get(RESUME_PROFILE_COOKIE_KEY)?.value,
     );
 
-    const body = (await request.json()) as {
+    let body: {
       difficulty?: string;
       offset?: number;
       count?: number;
       resumeProfile?: Partial<ResumeProfile> | null;
-    };
+    } = {};
+
+    try {
+      body = (await request.json()) as {
+        difficulty?: string;
+        offset?: number;
+        count?: number;
+        resumeProfile?: Partial<ResumeProfile> | null;
+      };
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
     const difficulty = normalizeDifficulty(body?.difficulty);
     const offset = typeof body?.offset === "number" && body.offset >= 0 ? Math.floor(body.offset) : 0;
@@ -101,13 +112,18 @@ export async function POST(request: Request) {
       resumeProfile: profile,
     });
 
-    response.cookies.set(RESUME_PROFILE_COOKIE_KEY, encodeResumeProfileCookie(profile), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    try {
+      response.cookies.set(RESUME_PROFILE_COOKIE_KEY, encodeResumeProfileCookie(profile), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+        path: "/",
+      });
+    } catch (cookieError) {
+      console.warn("/api/dashboard/practice-questions cookie write skipped:", cookieError);
+      response.cookies.delete(RESUME_PROFILE_COOKIE_KEY);
+    }
 
     return response;
   } catch (error) {

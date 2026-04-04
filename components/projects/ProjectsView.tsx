@@ -91,6 +91,87 @@ interface ProjectsResponse {
   deliverables: DeliverableItem[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+function mergeProjectMetric(
+  value: unknown,
+  fallback: ProjectsResponse["metrics"]["activeProjects"],
+): ProjectsResponse["metrics"]["activeProjects"] {
+  if (!isRecord(value)) return fallback;
+
+  const candidate = value as Partial<ProjectsResponse["metrics"]["activeProjects"]>;
+
+  return {
+    value: typeof candidate.value === "string" ? candidate.value : fallback.value,
+    change: typeof candidate.change === "string" ? candidate.change : fallback.change,
+    helperText: typeof candidate.helperText === "string" ? candidate.helperText : fallback.helperText,
+  };
+}
+
+function mergeProjectsMetrics(value: unknown): ProjectsResponse["metrics"] {
+  if (!isRecord(value)) return defaultMetrics;
+
+  return {
+    activeProjects: mergeProjectMetric(value.activeProjects, defaultMetrics.activeProjects),
+    completionRate: mergeProjectMetric(value.completionRate, defaultMetrics.completionRate),
+    technicalDepth: mergeProjectMetric(value.technicalDepth, defaultMetrics.technicalDepth),
+    portfolioImpact: mergeProjectMetric(value.portfolioImpact, defaultMetrics.portfolioImpact),
+  };
+}
+
+function parseProjectPipeline(value: unknown): ProjectPipelineItem[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (
+        typeof item.name !== "string" ||
+        typeof item.summary !== "string" ||
+        !Array.isArray(item.stack) ||
+        typeof item.progress !== "number" ||
+        typeof item.status !== "string" ||
+        typeof item.nextMilestone !== "string"
+      ) {
+        return null;
+      }
+
+      const stack = item.stack.filter((entry): entry is string => typeof entry === "string");
+
+      return {
+        name: item.name,
+        summary: item.summary,
+        stack,
+        progress: item.progress,
+        status: item.status,
+        nextMilestone: item.nextMilestone,
+      };
+    })
+    .filter((item): item is ProjectPipelineItem => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseDeliverables(value: unknown): DeliverableItem[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (typeof item.item !== "string" || typeof item.target !== "string") return null;
+
+      return {
+        item: item.item,
+        target: item.target,
+      };
+    })
+    .filter((item): item is DeliverableItem => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
 const defaultMetrics: ProjectsResponse["metrics"] = {
   activeProjects: {
     value: "3",
@@ -139,17 +220,13 @@ export function ProjectsView() {
         const data = (await res.json()) as Partial<ProjectsResponse>;
         if (cancelled) return;
 
-        if (data.metrics) {
-          setMetrics(data.metrics);
-        }
+        setMetrics(mergeProjectsMetrics(data.metrics));
 
-        if (Array.isArray(data.projectPipeline) && data.projectPipeline.length > 0) {
-          setProjectPipelineItems(data.projectPipeline);
-        }
+        const nextProjectPipeline = parseProjectPipeline(data.projectPipeline);
+        if (nextProjectPipeline) setProjectPipelineItems(nextProjectPipeline);
 
-        if (Array.isArray(data.deliverables) && data.deliverables.length > 0) {
-          setDeliverableItems(data.deliverables);
-        }
+        const nextDeliverables = parseDeliverables(data.deliverables);
+        if (nextDeliverables) setDeliverableItems(nextDeliverables);
       } catch {
         // Keep fallback UI values when API fails.
       }

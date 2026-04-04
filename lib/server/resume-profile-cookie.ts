@@ -1,6 +1,7 @@
 import type { ResumeProfile } from "@/lib/resume-profile";
 
 export const RESUME_PROFILE_COOKIE_KEY = "resume_profile";
+const MAX_RESUME_PROFILE_COOKIE_BYTES = 3800;
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
@@ -26,7 +27,13 @@ export function isResumeProfile(value: unknown): value is ResumeProfile {
 }
 
 export function encodeResumeProfileCookie(profile: ResumeProfile): string {
-  return Buffer.from(JSON.stringify(profile), "utf8").toString("base64url");
+  const encoded = Buffer.from(JSON.stringify(profile), "utf8").toString("base64url");
+
+  if (encoded.length > MAX_RESUME_PROFILE_COOKIE_BYTES) {
+    throw new Error("Resume profile is too large to fit in a cookie");
+  }
+
+  return encoded;
 }
 
 export function decodeResumeProfileCookie(raw: string | undefined): ResumeProfile | null {

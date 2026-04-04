@@ -167,8 +167,8 @@ function Navbar() {
             <li><a href="#">Contact</a></li>
           </ul>
           <div className="nav-cta">
-            <a href="/login-page" className="btn btn-ghost">Login</a>
-            <a href="/signup-page" className="btn btn-primary">Sign Up</a>
+            <a href="/sign-in" className="btn btn-ghost">Login</a>
+            <a href="/sign-up" className="btn btn-primary">Sign Up</a>
           </div>
           <button
             className="hamburger"
@@ -447,7 +447,7 @@ function Footer() {
       </div>
 
       <div className="footer-bottom">
-        <div>© 2024 Resumate Bro. All rights reserved.</div>
+        <div>© {new Date().getFullYear()} Resumate Bro. All rights reserved.</div>
         <div className="footer-links">
           <a href="#">Privacy Policy</a>
           <a href="#">Terms of Service</a>

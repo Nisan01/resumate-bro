@@ -54,13 +54,18 @@ export async function POST(request: Request) {
       storedInDatabase: storeResult.storedInDatabase,
     });
 
-    response.cookies.set(RESUME_PROFILE_COOKIE_KEY, encodeResumeProfileCookie(resumeProfile), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    try {
+      response.cookies.set(RESUME_PROFILE_COOKIE_KEY, encodeResumeProfileCookie(resumeProfile), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+        path: "/",
+      });
+    } catch (cookieError) {
+      console.warn("/api/dashboard/resume-analyzer/upload cookie write skipped:", cookieError);
+      response.cookies.delete(RESUME_PROFILE_COOKIE_KEY);
+    }
 
     return response;
   } catch (error) {

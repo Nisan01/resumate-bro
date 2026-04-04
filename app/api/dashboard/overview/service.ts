@@ -124,6 +124,18 @@ function priorityToSeverity(priority: string | null): SignalSeverity {
   return "Low";
 }
 
+function buildSignalAction(severity: SignalSeverity): string {
+  if (severity === "High") {
+    return "Prioritize this fix before your next application round.";
+  }
+
+  if (severity === "Medium") {
+    return "Schedule this update in your next resume revision pass.";
+  }
+
+  return "Keep this area stable while refining higher-impact sections.";
+}
+
 function formatEta(dueDate: Date | string | null): string {
   if (!dueDate) return "30 min";
 
@@ -273,11 +285,15 @@ export async function getOverviewPayload(session: DashboardSession, resumeProfil
     : overviewFallbackPayload.skillMomentum;
 
   const resumeSignals = signalRows.length > 0
-    ? signalRows.map((signal) => ({
-        signal: signal.suggestion,
-        severity: priorityToSeverity(signal.priority),
-        action: signal.suggestion,
-      }))
+    ? signalRows.map((signal) => {
+        const severity = priorityToSeverity(signal.priority);
+
+        return {
+          signal: signal.suggestion,
+          severity,
+          action: buildSignalAction(severity),
+        };
+      })
     : resumeProfile && resumeProfile.focusAreas.length > 0
       ? resumeProfile.focusAreas.slice(0, 3).map((area, index) => ({
           signal: `Improve ${area}`,

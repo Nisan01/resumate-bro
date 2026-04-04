@@ -71,6 +71,98 @@ interface ResumeAnalyzerResponse {
   improvements: string[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && !Array.isArray(value) && typeof value === "object";
+}
+
+function mergeAnalyzerMetric(
+  value: unknown,
+  fallback: ResumeAnalyzerResponse["metrics"]["resumeScore"],
+): ResumeAnalyzerResponse["metrics"]["resumeScore"] {
+  if (!isRecord(value)) return fallback;
+
+  const candidate = value as Partial<ResumeAnalyzerResponse["metrics"]["resumeScore"]>;
+
+  return {
+    value: typeof candidate.value === "string" ? candidate.value : fallback.value,
+    change: typeof candidate.change === "string" ? candidate.change : fallback.change,
+    helperText: typeof candidate.helperText === "string" ? candidate.helperText : fallback.helperText,
+  };
+}
+
+function mergeAnalyzerMetrics(value: unknown): ResumeAnalyzerResponse["metrics"] {
+  if (!isRecord(value)) return defaultMetrics;
+
+  return {
+    resumeScore: mergeAnalyzerMetric(value.resumeScore, defaultMetrics.resumeScore),
+    jobReadyIndex: mergeAnalyzerMetric(value.jobReadyIndex, defaultMetrics.jobReadyIndex),
+    improvementPriority: mergeAnalyzerMetric(value.improvementPriority, defaultMetrics.improvementPriority),
+  };
+}
+
+function persistLocalResumeProfile(profile: ResumeProfile): void {
+  try {
+    window.localStorage.setItem(LOCAL_RESUME_PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // Ignore storage write failures.
+  }
+}
+
+function parseRoleMatches(value: unknown): ResumeAnalyzerResponse["roleMatches"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (typeof item.role !== "string" || typeof item.match !== "number" || typeof item.note !== "string") {
+        return null;
+      }
+
+      return {
+        role: item.role,
+        match: item.match,
+        note: item.note,
+      };
+    })
+    .filter((item): item is ResumeAnalyzerResponse["roleMatches"][number] => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseSkillGaps(value: unknown): ResumeAnalyzerResponse["skillGaps"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (
+        typeof item.skill !== "string" ||
+        typeof item.current !== "number" ||
+        typeof item.target !== "number" ||
+        typeof item.priority !== "string"
+      ) {
+        return null;
+      }
+
+      return {
+        skill: item.skill,
+        current: item.current,
+        target: item.target,
+        priority: item.priority,
+      };
+    })
+    .filter((item): item is ResumeAnalyzerResponse["skillGaps"][number] => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseImprovements(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  return normalized.length > 0 ? normalized : null;
+}
+
 const defaultMetrics: ResumeAnalyzerResponse["metrics"] = {
   resumeScore: {
     value: "82 / 100",
@@ -151,21 +243,16 @@ export function ResumeAnalyzerView() {
         const data = (await res.json()) as Partial<ResumeAnalyzerResponse>;
         if (cancelled) return;
 
-        if (data.metrics) {
-          setMetrics(data.metrics);
-        }
+        setMetrics(mergeAnalyzerMetrics(data.metrics));
 
-        if (Array.isArray(data.roleMatches) && data.roleMatches.length > 0) {
-          setRoleMatchesData(data.roleMatches);
-        }
+        const nextRoleMatches = parseRoleMatches(data.roleMatches);
+        if (nextRoleMatches) setRoleMatchesData(nextRoleMatches);
 
-        if (Array.isArray(data.skillGaps) && data.skillGaps.length > 0) {
-          setSkillGapsData(data.skillGaps);
-        }
+        const nextSkillGaps = parseSkillGaps(data.skillGaps);
+        if (nextSkillGaps) setSkillGapsData(nextSkillGaps);
 
-        if (Array.isArray(data.improvements) && data.improvements.length > 0) {
-          setImprovementsData(data.improvements);
-        }
+        const nextImprovements = parseImprovements(data.improvements);
+        if (nextImprovements) setImprovementsData(nextImprovements);
       } catch {
         // Preserve fallback resume analyzer values.
       }
@@ -298,7 +385,7 @@ export function ResumeAnalyzerView() {
         const uploadedProfile = data?.resumeProfile;
 
         if (uploadedProfile) {
-          window.localStorage.setItem(LOCAL_RESUME_PROFILE_KEY, JSON.stringify(uploadedProfile));
+          persistLocalResumeProfile(uploadedProfile);
 
           setMetrics((previous) => ({
             ...previous,
@@ -526,8 +613,8 @@ export function ResumeAnalyzerView() {
           }
         >
           <ul className="space-y-3">
-            {improvementsData.map((item) => (
-              <li key={item} className={glassItemCardClass}>
+            {improvementsData.map((item, index) => (
+              <li key={`${item}-${index}`} className={glassItemCardClass}>
                 <div className="flex items-start gap-3">
                   <FileText className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" />
                   <p className="text-sm text-slate-200">{item}</p>

@@ -306,33 +306,35 @@ export async function saveResumeProfile(
   profile: ResumeProfile,
 ): Promise<{ storedInDatabase: boolean }> {
   try {
-    await db
-      .update(resumes)
-      .set({ isActive: false })
-      .where(eq(resumes.userId, userId));
+    await db.transaction(async (tx) => {
+      await tx
+        .update(resumes)
+        .set({ isActive: false })
+        .where(eq(resumes.userId, userId));
 
-    await db.insert(resumes).values({
-      userId,
-      fileName: file.name,
-      fileUrl: normalizeFileUrl(file.name),
-      fileSize: file.size,
-      mimeType: file.type || "application/pdf",
-      isActive: true,
-      resumeScore: profile.resumeScore,
-      atsScore: clampScore(profile.resumeScore - 4),
-      jobReadiness: profile.jobReadiness,
-      extractedSkills: profile.topSkills,
-      extractedExperience: {
-        summary: profile.summary,
-        highlights: profile.experienceHighlights,
-      },
-      extractedProjects: profile.projectHighlights,
-      extractedEducation: {
-        focusAreas: profile.focusAreas,
-        targetRole: profile.targetRole,
-      },
-      analysisStatus: "completed",
-      analysisCompletedAt: new Date(),
+      await tx.insert(resumes).values({
+        userId,
+        fileName: file.name,
+        fileUrl: normalizeFileUrl(file.name),
+        fileSize: file.size,
+        mimeType: file.type || "application/pdf",
+        isActive: true,
+        resumeScore: profile.resumeScore,
+        atsScore: clampScore(profile.resumeScore - 4),
+        jobReadiness: profile.jobReadiness,
+        extractedSkills: profile.topSkills,
+        extractedExperience: {
+          summary: profile.summary,
+          highlights: profile.experienceHighlights,
+        },
+        extractedProjects: profile.projectHighlights,
+        extractedEducation: {
+          focusAreas: profile.focusAreas,
+          targetRole: profile.targetRole,
+        },
+        analysisStatus: "completed",
+        analysisCompletedAt: new Date(),
+      });
     });
 
     return { storedInDatabase: true };

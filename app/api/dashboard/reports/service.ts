@@ -111,10 +111,11 @@ export async function getReportsPayload(session: DashboardSession, resumeProfile
       })
       .from(tasks)
       .where(eq(tasks.userId, session.userId))
-      .limit(300),
+      .orderBy(desc(tasks.updatedAt))
+      .limit(1000),
   ]);
 
-  const weeklyTrend = [...reportsFallbackPayload.weeklyTrend];
+  const weeklyTrend = reportsFallbackPayload.weeklyTrend.map((item) => ({ ...item }));
 
   if (progressRows.length > 0) {
     const trendByDay = new Map<string, number>();

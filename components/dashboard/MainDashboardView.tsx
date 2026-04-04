@@ -107,6 +107,119 @@ interface DashboardOverviewResponse {
   roadmapCheckpoints: Array<{ phase: string; target: string; due: string }>;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && !Array.isArray(value) && typeof value === "object";
+}
+
+function toDashboardMetric(value: unknown, fallback: DashboardMetric): DashboardMetric {
+  if (!isRecord(value)) return fallback;
+
+  const candidate = value as Partial<DashboardMetric>;
+
+  return {
+    value: typeof candidate.value === "string" ? candidate.value : fallback.value,
+    change: typeof candidate.change === "string" ? candidate.change : fallback.change,
+    helperText: typeof candidate.helperText === "string" ? candidate.helperText : fallback.helperText,
+  };
+}
+
+function mergeDashboardMetrics(value: unknown): DashboardOverviewResponse["metrics"] {
+  if (!isRecord(value)) return defaultMetrics;
+
+  return {
+    resumeStrength: toDashboardMetric(value.resumeStrength, defaultMetrics.resumeStrength),
+    weeklyConsistency: toDashboardMetric(value.weeklyConsistency, defaultMetrics.weeklyConsistency),
+    activeProjects: toDashboardMetric(value.activeProjects, defaultMetrics.activeProjects),
+    interviewReadiness: toDashboardMetric(value.interviewReadiness, defaultMetrics.interviewReadiness),
+  };
+}
+
+function parseTodayFocus(value: unknown): DashboardOverviewResponse["todayFocus"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (typeof item.task !== "string" || typeof item.eta !== "string" || typeof item.status !== "string") {
+        return null;
+      }
+
+      return { task: item.task, eta: item.eta, status: item.status };
+    })
+    .filter((item): item is DashboardOverviewResponse["todayFocus"][number] => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseSkillMomentum(value: unknown): DashboardOverviewResponse["skillMomentum"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (
+        typeof item.label !== "string" ||
+        typeof item.value !== "number" ||
+        typeof item.note !== "string" ||
+        (item.tone !== "emerald" && item.tone !== "cyan" && item.tone !== "amber" && item.tone !== "rose")
+      ) {
+        return null;
+      }
+
+      return {
+        label: item.label,
+        value: item.value,
+        note: item.note,
+        tone: item.tone,
+      };
+    })
+    .filter((item): item is DashboardOverviewResponse["skillMomentum"][number] => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseResumeSignals(value: unknown): DashboardOverviewResponse["resumeSignals"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (typeof item.signal !== "string" || typeof item.severity !== "string" || typeof item.action !== "string") {
+        return null;
+      }
+
+      return {
+        signal: item.signal,
+        severity: item.severity,
+        action: item.action,
+      };
+    })
+    .filter((item): item is DashboardOverviewResponse["resumeSignals"][number] => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseRoadmapCheckpoints(value: unknown): DashboardOverviewResponse["roadmapCheckpoints"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (typeof item.phase !== "string" || typeof item.target !== "string" || typeof item.due !== "string") {
+        return null;
+      }
+
+      return {
+        phase: item.phase,
+        target: item.target,
+        due: item.due,
+      };
+    })
+    .filter((item): item is DashboardOverviewResponse["roadmapCheckpoints"][number] => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
 const defaultMetrics: DashboardOverviewResponse["metrics"] = {
   resumeStrength: {
     value: "82 / 100",
@@ -171,25 +284,19 @@ export function MainDashboardView() {
         const data = (await res.json()) as Partial<DashboardOverviewResponse>;
         if (cancelled) return;
 
-        if (data.metrics) {
-          setMetrics(data.metrics);
-        }
+        setMetrics(mergeDashboardMetrics(data.metrics));
 
-        if (Array.isArray(data.todayFocus) && data.todayFocus.length > 0) {
-          setTodayFocusItems(data.todayFocus);
-        }
+        const nextTodayFocus = parseTodayFocus(data.todayFocus);
+        if (nextTodayFocus) setTodayFocusItems(nextTodayFocus);
 
-        if (Array.isArray(data.skillMomentum) && data.skillMomentum.length > 0) {
-          setSkillMomentumItems(data.skillMomentum);
-        }
+        const nextSkillMomentum = parseSkillMomentum(data.skillMomentum);
+        if (nextSkillMomentum) setSkillMomentumItems(nextSkillMomentum);
 
-        if (Array.isArray(data.resumeSignals) && data.resumeSignals.length > 0) {
-          setResumeSignalsItems(data.resumeSignals);
-        }
+        const nextResumeSignals = parseResumeSignals(data.resumeSignals);
+        if (nextResumeSignals) setResumeSignalsItems(nextResumeSignals);
 
-        if (Array.isArray(data.roadmapCheckpoints) && data.roadmapCheckpoints.length > 0) {
-          setRoadmapCheckpointItems(data.roadmapCheckpoints);
-        }
+        const nextRoadmapCheckpoints = parseRoadmapCheckpoints(data.roadmapCheckpoints);
+        if (nextRoadmapCheckpoints) setRoadmapCheckpointItems(nextRoadmapCheckpoints);
       } catch {
         // Keep default UI data as resilient fallback.
       }
@@ -288,9 +395,9 @@ export function MainDashboardView() {
           }
         >
           <ul className="space-y-3">
-            {todayFocusItems.map((item) => (
+            {todayFocusItems.map((item, index) => (
               <li
-                key={item.task}
+                key={`${item.task}-${index}`}
                 className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${glassItemCardClass}`}
               >
                 <div>
@@ -329,8 +436,8 @@ export function MainDashboardView() {
           }
         >
           <ul className="space-y-3">
-            {resumeSignalsItems.map((item) => (
-              <li key={item.signal} className={glassItemCardClass}>
+            {resumeSignalsItems.map((item, index) => (
+              <li key={`${item.signal}-${index}`} className={glassItemCardClass}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="font-medium text-slate-100">{item.signal}</p>
                   <StatusBadge tone={getSeverityTone(item.severity)}>{item.severity}</StatusBadge>
@@ -346,8 +453,8 @@ export function MainDashboardView() {
           description="Upcoming milestones from your career growth timeline."
         >
           <ul className="space-y-3">
-            {roadmapCheckpointItems.map((checkpoint) => (
-              <li key={checkpoint.phase} className={glassItemCardClass}>
+            {roadmapCheckpointItems.map((checkpoint, index) => (
+              <li key={`${checkpoint.phase}-${index}`} className={glassItemCardClass}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-medium text-slate-100">{checkpoint.phase}</p>

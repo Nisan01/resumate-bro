@@ -184,6 +184,8 @@ export async function getResumeAnalyzerPayload(session: DashboardSession, resume
     ? resumeProfile.focusAreas.slice(0, 4).map((area) => `Strengthen ${area} with role-specific examples for ${resumeProfile.targetRole}.`)
     : [];
   const criticalItems = suggestionRows.filter((row) => toPriority(row.priority) === "High").length;
+  const improvementCount = Math.max(improvements.length, resumeDrivenImprovements.length);
+  const criticalCount = Math.max(criticalItems, resumeDrivenImprovements.length > 0 ? 1 : 0);
 
   const roleMatches = roleRows.length > 0
     ? roleRows.map((row) => ({
@@ -255,8 +257,8 @@ export async function getResumeAnalyzerPayload(session: DashboardSession, resume
         helperText: "Based on readiness and score signals",
       },
       improvementPriority: {
-        value: `${Math.max(improvements.length, resumeDrivenImprovements.length, 1)} items`,
-        change: `${Math.max(criticalItems, resumeDrivenImprovements.length > 0 ? 1 : 0, 1)} critical`,
+        value: `${improvementCount} items`,
+        change: `${criticalCount} critical`,
         helperText: "High-impact actions generated",
       },
     },

@@ -12,10 +12,54 @@ interface ResumeContextResponse {
 
 type GateState = "checking" | "allowed" | "required";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+function isResumeProfileShape(value: unknown): value is ResumeProfile {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.sourceFileName === "string" &&
+    typeof value.summary === "string" &&
+    typeof value.targetRole === "string" &&
+    Array.isArray(value.topSkills) &&
+    Array.isArray(value.focusAreas) &&
+    Array.isArray(value.projectHighlights) &&
+    Array.isArray(value.experienceHighlights) &&
+    typeof value.resumeScore === "number" &&
+    typeof value.jobReadiness === "string" &&
+    typeof value.lastAnalyzedAt === "string"
+  );
+}
+
+function persistLocalResumeProfile(profile: ResumeProfile): void {
+  try {
+    window.localStorage.setItem(LOCAL_RESUME_PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // Ignore storage write failures.
+  }
+}
+
+function clearLocalResumeProfile(): void {
+  try {
+    window.localStorage.removeItem(LOCAL_RESUME_PROFILE_KEY);
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+}
+
 function parseLocalResumeProfile(): ResumeProfile | null {
   if (typeof window === "undefined") return null;
 
-  const raw = window.localStorage.getItem(LOCAL_RESUME_PROFILE_KEY);
+  let raw: string | null = null;
+
+  try {
+    raw = window.localStorage.getItem(LOCAL_RESUME_PROFILE_KEY);
+  } catch {
+    return null;
+  }
+
   if (!raw) return null;
 
   try {
@@ -64,11 +108,14 @@ export function ResumeRequiredGate({ children }: { children: React.ReactNode }) 
         const data = (await response.json()) as ResumeContextResponse;
         if (cancelled) return;
 
-        if (data.resumeProfile) {
-          window.localStorage.setItem(LOCAL_RESUME_PROFILE_KEY, JSON.stringify(data.resumeProfile));
+        if (data.hasResumeProfile && isResumeProfileShape(data.resumeProfile)) {
+          persistLocalResumeProfile(data.resumeProfile);
+          setGateState("allowed");
+          return;
         }
 
-        setGateState(data.hasResumeProfile ? "allowed" : "required");
+        clearLocalResumeProfile();
+        setGateState(localProfile ? "allowed" : "required");
       } catch {
         if (!cancelled) {
           setGateState(localProfile ? "allowed" : "required");
@@ -90,7 +137,9 @@ export function ResumeRequiredGate({ children }: { children: React.ReactNode }) 
   if (gateState === "required") {
     return (
       <div className="relative min-h-full">
-        <div className="pointer-events-none blur-[1px] opacity-25">{children}</div>
+        <div aria-hidden="true" inert className="pointer-events-none blur-[1px] opacity-25">
+          {children}
+        </div>
         <div className="absolute inset-0 flex items-center justify-center p-6">
           <div className="w-full max-w-xl rounded-2xl border border-white/28 bg-slate-950/80 p-6 shadow-[0_24px_50px_rgba(2,8,24,0.45)] backdrop-blur-md">
             <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/85">Resume Required</p>

@@ -29,10 +29,18 @@ function extractJsonPayload(raw: string): string {
   }
 
   const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
+  const firstBracket = trimmed.indexOf("[");
 
-  if (firstBrace >= 0 && lastBrace > firstBrace) {
-    return trimmed.slice(firstBrace, lastBrace + 1);
+  const starts: number[] = [firstBrace, firstBracket].filter((index) => index >= 0);
+
+  if (starts.length > 0) {
+    const firstStart = Math.min(...starts);
+    const startsWithArray = trimmed[firstStart] === "[";
+    const lastEnd = startsWithArray ? trimmed.lastIndexOf("]") : trimmed.lastIndexOf("}");
+
+    if (lastEnd > firstStart) {
+      return trimmed.slice(firstStart, lastEnd + 1);
+    }
   }
 
   return trimmed;
@@ -63,11 +71,12 @@ export async function generateGeminiJson<T>(options: GenerateGeminiJsonOptions):
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           contents: [

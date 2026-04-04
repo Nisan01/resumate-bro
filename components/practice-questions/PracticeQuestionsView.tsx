@@ -31,6 +31,52 @@ interface PracticeApiResponse {
   resumeProfile: ResumeProfile;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+function parsePracticeQuestionItems(value: unknown): PracticeQuestionItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (
+        typeof item.id !== "string" ||
+        typeof item.question !== "string" ||
+        typeof item.answer !== "string" ||
+        typeof item.focusArea !== "string"
+      ) {
+        return null;
+      }
+
+      return {
+        id: item.id,
+        question: item.question,
+        answer: item.answer,
+        focusArea: item.focusArea,
+      };
+    })
+    .filter((item): item is PracticeQuestionItem => Boolean(item));
+}
+
+function isResumeProfileShape(value: unknown): value is ResumeProfile {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.sourceFileName === "string" &&
+    typeof value.summary === "string" &&
+    typeof value.targetRole === "string" &&
+    Array.isArray(value.topSkills) &&
+    Array.isArray(value.focusAreas) &&
+    Array.isArray(value.projectHighlights) &&
+    Array.isArray(value.experienceHighlights) &&
+    typeof value.resumeScore === "number" &&
+    typeof value.jobReadiness === "string" &&
+    typeof value.lastAnalyzedAt === "string"
+  );
+}
+
 const glassItemCardClass =
   "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
@@ -55,7 +101,14 @@ const difficultyConfig: Array<{ key: InterviewDifficulty; label: string; helper:
 function parseStoredResumeProfile(): ResumeProfile | null {
   if (typeof window === "undefined") return null;
 
-  const raw = window.localStorage.getItem(LOCAL_RESUME_PROFILE_KEY);
+  let raw: string | null = null;
+
+  try {
+    raw = window.localStorage.getItem(LOCAL_RESUME_PROFILE_KEY);
+  } catch {
+    return null;
+  }
+
   if (!raw) return null;
 
   try {
@@ -67,6 +120,14 @@ function parseStoredResumeProfile(): ResumeProfile | null {
     return parsed;
   } catch {
     return null;
+  }
+}
+
+function persistLocalResumeProfile(profile: ResumeProfile): void {
+  try {
+    window.localStorage.setItem(LOCAL_RESUME_PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // Ignore storage write failures.
   }
 }
 
@@ -111,9 +172,9 @@ export function PracticeQuestionsView() {
 
         if (cancelled) return;
 
-        if (data?.resumeProfile) {
+        if (isResumeProfileShape(data?.resumeProfile)) {
           setResumeProfile(data.resumeProfile);
-          window.localStorage.setItem(LOCAL_RESUME_PROFILE_KEY, JSON.stringify(data.resumeProfile));
+          persistLocalResumeProfile(data.resumeProfile);
         }
       } catch {
         // Keep local profile fallback.
@@ -160,14 +221,14 @@ export function PracticeQuestionsView() {
         throw new Error(data?.error || "Failed to generate practice questions.");
       }
 
-      const items = Array.isArray(data.questions) ? data.questions : [];
+      const items = parsePracticeQuestionItems(data.questions);
       setQuestions((previous) => (append ? [...previous, ...items] : items));
       setNextOffset(typeof data.nextOffset === "number" ? data.nextOffset : (append ? nextOffset : items.length));
       setSource(data.source ?? "fallback");
 
-      if (data.resumeProfile) {
+      if (isResumeProfileShape(data.resumeProfile)) {
         setResumeProfile(data.resumeProfile);
-        window.localStorage.setItem(LOCAL_RESUME_PROFILE_KEY, JSON.stringify(data.resumeProfile));
+        persistLocalResumeProfile(data.resumeProfile);
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to generate practice questions.");
@@ -335,8 +396,8 @@ export function PracticeQuestionsView() {
             <div className={glassItemCardClass}>
               <p className="text-xs uppercase tracking-wide text-slate-300">Top Skills</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                {(resumeProfile?.topSkills ?? []).slice(0, 8).map((skill) => (
-                  <StatusBadge key={skill} tone="success">
+                {(resumeProfile?.topSkills ?? []).slice(0, 8).map((skill, index) => (
+                  <StatusBadge key={`${skill}-${index}`} tone="success">
                     {skill}
                   </StatusBadge>
                 ))}
@@ -346,8 +407,8 @@ export function PracticeQuestionsView() {
             <div className={glassItemCardClass}>
               <p className="text-xs uppercase tracking-wide text-slate-300">Interview Focus Areas</p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-slate-100">
-                {(resumeProfile?.focusAreas ?? []).slice(0, 6).map((focus) => (
-                  <li key={focus}>{focus}</li>
+                {(resumeProfile?.focusAreas ?? []).slice(0, 6).map((focus, index) => (
+                  <li key={`${focus}-${index}`}>{focus}</li>
                 ))}
               </ul>
             </div>

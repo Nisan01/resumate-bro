@@ -1,27 +1,32 @@
 import { cookies } from "next/headers";
+import {
+  isAuthDevFallbackEnabled,
+  isDevFallbackUserId,
+} from "@/lib/server/auth-dev-fallback";
 import { getUserByEmail } from "@/utils/db/db-operations/user";
 import { verifyToken } from "@/utils/db/db-operations/jwt/jwt";
 
 export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
+  const allowDevFallback = isAuthDevFallbackEnabled();
 
   if (!token) return Response.json({ user: null }, { status: 401 });
 
-  const decoded = verifyToken(token);
+  const decoded = await verifyToken(token);
   if (!decoded) return Response.json({ user: null }, { status: 401 });
 
   try {
     const user = await getUserByEmail(decoded.email);
 
     if (!user) {
-      if (process.env.NODE_ENV !== "production") {
+      if (allowDevFallback && isDevFallbackUserId(decoded.id)) {
         return Response.json({
           user: {
-            id: decoded.id ?? `dev-${decoded.email}`,
+            id: decoded.id,
             name: decoded.name,
             email: decoded.email,
-            avatarUrl: decoded.avatarUrl ?? null,
+            avatarUrl: null,
           },
         });
       }
@@ -38,14 +43,14 @@ export async function GET() {
       },
     });
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
+    if (allowDevFallback && isDevFallbackUserId(decoded.id)) {
       console.warn("/api/auth/me DB lookup failed, using token fallback:", error);
       return Response.json({
         user: {
-          id: decoded.id ?? `dev-${decoded.email}`,
+          id: decoded.id,
           name: decoded.name,
           email: decoded.email,
-          avatarUrl: decoded.avatarUrl ?? null,
+          avatarUrl: null,
         },
       });
     }

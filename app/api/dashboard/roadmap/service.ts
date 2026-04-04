@@ -308,7 +308,7 @@ export async function getRoadmapPayload(
       ? 80
       : clampPercent(score - 15);
 
-  const inferredSkillMatch = dbGap?.overallGapScore
+  const inferredSkillMatch = typeof dbGap?.overallGapScore === "number"
     ? clampPercent(100 - dbGap.overallGapScore * 100)
     : fallbackRoadmap.skillMatch;
 
@@ -347,13 +347,15 @@ export async function getRoadmapPayload(
       },
       {
         ...fallbackRoadmap.progress[2],
-        value: dbEnrollment?.progressPercent
+        value: typeof dbEnrollment?.progressPercent === "number"
           ? clampPercent(dbEnrollment.progressPercent)
           : resumeProfile
             ? clampPercent(score - 12)
             : fallbackRoadmap.progress[2].value,
-        note: dbEnrollment?.progressPercent
+        note: typeof dbEnrollment?.progressPercent === "number"
           ? `Roadmap completion: ${clampPercent(dbEnrollment.progressPercent)}%`
+          : resumeProfile
+            ? `Estimated roadmap completion: ${clampPercent(score - 12)}%`
           : fallbackRoadmap.progress[2].note,
       },
     ],

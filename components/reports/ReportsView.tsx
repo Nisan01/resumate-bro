@@ -58,6 +58,88 @@ interface ReportsResponse {
   insightNotes: string[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+function mergeReportMetric(
+  value: unknown,
+  fallback: ReportsResponse["metrics"]["weeklyScore"],
+): ReportsResponse["metrics"]["weeklyScore"] {
+  if (!isRecord(value)) return fallback;
+
+  const candidate = value as Partial<ReportsResponse["metrics"]["weeklyScore"]>;
+
+  return {
+    value: typeof candidate.value === "string" ? candidate.value : fallback.value,
+    change: typeof candidate.change === "string" ? candidate.change : fallback.change,
+    helperText: typeof candidate.helperText === "string" ? candidate.helperText : fallback.helperText,
+  };
+}
+
+function mergeReportsMetrics(value: unknown): ReportsResponse["metrics"] {
+  if (!isRecord(value)) return defaultMetrics;
+
+  return {
+    weeklyScore: mergeReportMetric(value.weeklyScore, defaultMetrics.weeklyScore),
+    activeStreak: mergeReportMetric(value.activeStreak, defaultMetrics.activeStreak),
+    reportCoverage: mergeReportMetric(value.reportCoverage, defaultMetrics.reportCoverage),
+    nextReview: mergeReportMetric(value.nextReview, defaultMetrics.nextReview),
+  };
+}
+
+function parseWeeklyTrend(value: unknown): ReportsResponse["weeklyTrend"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (typeof item.day !== "string" || typeof item.score !== "number") return null;
+
+      return {
+        day: item.day,
+        score: item.score,
+      };
+    })
+    .filter((item): item is ReportsResponse["weeklyTrend"][number] => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseCategoryBreakdown(value: unknown): ReportsResponse["categoryBreakdown"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .map((item) => {
+      if (!isRecord(item)) return null;
+      if (
+        typeof item.label !== "string" ||
+        typeof item.value !== "number" ||
+        typeof item.note !== "string" ||
+        (item.tone !== "emerald" && item.tone !== "cyan" && item.tone !== "amber" && item.tone !== "rose")
+      ) {
+        return null;
+      }
+
+      return {
+        label: item.label,
+        value: item.value,
+        note: item.note,
+        tone: item.tone,
+      };
+    })
+    .filter((item): item is ReportsResponse["categoryBreakdown"][number] => Boolean(item));
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseInsightNotes(value: unknown): ReportsResponse["insightNotes"] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  return normalized.length > 0 ? normalized : null;
+}
+
 const defaultMetrics: ReportsResponse["metrics"] = {
   weeklyScore: {
     value: "74%",
@@ -104,21 +186,16 @@ export function ReportsView() {
         const data = (await res.json()) as Partial<ReportsResponse>;
         if (cancelled) return;
 
-        if (data.metrics) {
-          setMetrics(data.metrics);
-        }
+        setMetrics(mergeReportsMetrics(data.metrics));
 
-        if (Array.isArray(data.weeklyTrend) && data.weeklyTrend.length > 0) {
-          setWeeklyTrendData(data.weeklyTrend);
-        }
+        const nextWeeklyTrend = parseWeeklyTrend(data.weeklyTrend);
+        if (nextWeeklyTrend) setWeeklyTrendData(nextWeeklyTrend);
 
-        if (Array.isArray(data.categoryBreakdown) && data.categoryBreakdown.length > 0) {
-          setCategoryBreakdownData(data.categoryBreakdown);
-        }
+        const nextCategoryBreakdown = parseCategoryBreakdown(data.categoryBreakdown);
+        if (nextCategoryBreakdown) setCategoryBreakdownData(nextCategoryBreakdown);
 
-        if (Array.isArray(data.insightNotes) && data.insightNotes.length > 0) {
-          setInsightNotesData(data.insightNotes);
-        }
+        const nextInsightNotes = parseInsightNotes(data.insightNotes);
+        if (nextInsightNotes) setInsightNotesData(nextInsightNotes);
       } catch {
         // Preserve fallback report data.
       }
