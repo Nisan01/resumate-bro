@@ -10,6 +10,7 @@ import {
 } from "@/components/shared/dashboard";
 import { Button } from "@/components/ui/button";
 import { FileText, Gauge, Lightbulb, Target, Upload } from "lucide-react";
+import { LOCAL_RESUME_PROFILE_KEY, type ResumeProfile } from "@/lib/resume-profile";
 
 const roleMatches = [
   {
@@ -57,11 +58,43 @@ const improvements = [
   "Include one short case study style project to showcase problem solving depth.",
 ];
 
-const priorityTone = {
-  High: "danger",
-  Medium: "warning",
-  Low: "success",
-} as const;
+type BadgeTone = "success" | "info" | "warning" | "danger" | "neutral";
+
+interface ResumeAnalyzerResponse {
+  metrics: {
+    resumeScore: { value: string; change: string; helperText: string };
+    jobReadyIndex: { value: string; change: string; helperText: string };
+    improvementPriority: { value: string; change: string; helperText: string };
+  };
+  roleMatches: Array<{ role: string; match: number; note: string }>;
+  skillGaps: Array<{ skill: string; current: number; target: number; priority: string }>;
+  improvements: string[];
+}
+
+const defaultMetrics: ResumeAnalyzerResponse["metrics"] = {
+  resumeScore: {
+    value: "82 / 100",
+    change: "+6 vs last scan",
+    helperText: "Structure and readability improved",
+  },
+  jobReadyIndex: {
+    value: "74%",
+    change: "Role aligned",
+    helperText: "Frontend roles are strongest",
+  },
+  improvementPriority: {
+    value: "4 items",
+    change: "2 critical",
+    helperText: "Action plan generated",
+  },
+};
+
+function getPriorityTone(priority: string): BadgeTone {
+  if (priority === "High") return "danger";
+  if (priority === "Medium") return "warning";
+  if (priority === "Low") return "success";
+  return "neutral";
+}
 
 const glassItemCardClass =
   "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
@@ -91,7 +124,6 @@ function validateResumeFile(file: File): string | null {
 
 export function ResumeAnalyzerView() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const analyzeTimeoutRef = useRef<number | null>(null);
   const dragEnterCounterRef = useRef(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string>("");
@@ -100,12 +132,49 @@ export function ResumeAnalyzerView() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState<"idle" | "running" | "completed">("idle");
   const [analysisTimestamp, setAnalysisTimestamp] = useState<number | null>(null);
+  const [metrics, setMetrics] = useState(defaultMetrics);
+  const [roleMatchesData, setRoleMatchesData] = useState(roleMatches);
+  const [skillGapsData, setSkillGapsData] = useState(skillGaps);
+  const [improvementsData, setImprovementsData] = useState(improvements);
 
   useEffect(() => {
-    return () => {
-      if (analyzeTimeoutRef.current !== null) {
-        window.clearTimeout(analyzeTimeoutRef.current);
+    let cancelled = false;
+
+    const loadResumeAnalyzerData = async () => {
+      try {
+        const res = await fetch("/api/dashboard/resume-analyzer", {
+          credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const data = (await res.json()) as Partial<ResumeAnalyzerResponse>;
+        if (cancelled) return;
+
+        if (data.metrics) {
+          setMetrics(data.metrics);
+        }
+
+        if (Array.isArray(data.roleMatches) && data.roleMatches.length > 0) {
+          setRoleMatchesData(data.roleMatches);
+        }
+
+        if (Array.isArray(data.skillGaps) && data.skillGaps.length > 0) {
+          setSkillGapsData(data.skillGaps);
+        }
+
+        if (Array.isArray(data.improvements) && data.improvements.length > 0) {
+          setImprovementsData(data.improvements);
+        }
+      } catch {
+        // Preserve fallback resume analyzer values.
       }
+    };
+
+    void loadResumeAnalyzerData();
+
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -194,34 +263,77 @@ export function ResumeAnalyzerView() {
   };
 
   const handleAnalyzeResume = () => {
-    if (!selectedFile) {
-      setUploadError("Select a resume PDF before running AI analysis.");
-      setStatusMessage("Waiting for file");
-      return;
-    }
+    void (async () => {
+      if (!selectedFile) {
+        setUploadError("Select a resume PDF before running AI analysis.");
+        setStatusMessage("Waiting for file");
+        return;
+      }
 
-    setUploadError("");
-    setAnalysisStatus("running");
-    setIsAnalyzing(true);
-    setStatusMessage("Analyzing with AI...");
+      setUploadError("");
+      setAnalysisStatus("running");
+      setIsAnalyzing(true);
+      setStatusMessage("Analyzing with AI...");
 
-    if (analyzeTimeoutRef.current !== null) {
-      window.clearTimeout(analyzeTimeoutRef.current);
-    }
+      try {
+        const formData = new FormData();
+        formData.append("resume", selectedFile);
 
-    analyzeTimeoutRef.current = window.setTimeout(() => {
-      setIsAnalyzing(false);
-      setAnalysisStatus("completed");
-      setAnalysisTimestamp(Date.now());
-      setStatusMessage("Analysis complete");
-    }, 1200);
+        const res = await fetch("/api/dashboard/resume-analyzer/upload", {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+
+        const data = (await res.json().catch(() => null)) as {
+          error?: string;
+          resumeProfile?: ResumeProfile;
+          storedInDatabase?: boolean;
+        } | null;
+
+        if (!res.ok) {
+          throw new Error(data?.error ?? "Unable to analyze resume.");
+        }
+
+        const uploadedProfile = data?.resumeProfile;
+
+        if (uploadedProfile) {
+          window.localStorage.setItem(LOCAL_RESUME_PROFILE_KEY, JSON.stringify(uploadedProfile));
+
+          setMetrics((previous) => ({
+            ...previous,
+            resumeScore: {
+              ...previous.resumeScore,
+              value: `${Math.round(uploadedProfile.resumeScore)} / 100`,
+              change: "Updated from latest upload",
+              helperText: "AI profile extracted from uploaded resume",
+            },
+          }));
+        }
+
+        setAnalysisStatus("completed");
+        setAnalysisTimestamp(Date.now());
+        setStatusMessage(
+          data?.storedInDatabase === false
+            ? "Analysis complete (profile saved locally)"
+            : "Analysis complete",
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unable to analyze resume.";
+        setAnalysisStatus("idle");
+        setUploadError(message);
+        setStatusMessage("Analysis failed");
+      } finally {
+        setIsAnalyzing(false);
+      }
+    })();
   };
 
   const handleExportTips = () => {
     const lines = [
       "Resume Improvement Suggestions",
       "",
-      ...improvements.map((tip, index) => `${index + 1}. ${tip}`),
+      ...improvementsData.map((tip, index) => `${index + 1}. ${tip}`),
     ];
 
     const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
@@ -246,25 +358,25 @@ export function ResumeAnalyzerView() {
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <MetricCard
           label="Resume Score"
-          value="82 / 100"
-          change="+6 vs last scan"
-          helperText="Structure and readability improved"
+          value={metrics.resumeScore.value}
+          change={metrics.resumeScore.change}
+          helperText={metrics.resumeScore.helperText}
           tone="teal"
           icon={<Gauge className="h-4 w-4" />}
         />
         <MetricCard
           label="Job-Ready Index"
-          value="74%"
-          change="Role aligned"
-          helperText="Frontend roles are strongest"
+          value={metrics.jobReadyIndex.value}
+          change={metrics.jobReadyIndex.change}
+          helperText={metrics.jobReadyIndex.helperText}
           tone="sky"
           icon={<Target className="h-4 w-4" />}
         />
         <MetricCard
           label="Improvement Priority"
-          value="4 items"
-          change="2 critical"
-          helperText="Action plan generated"
+          value={metrics.improvementPriority.value}
+          change={metrics.improvementPriority.change}
+          helperText={metrics.improvementPriority.helperText}
           tone="amber"
           icon={<Lightbulb className="h-4 w-4" />}
         />
@@ -295,8 +407,8 @@ export function ResumeAnalyzerView() {
             onKeyDown={handleDropzoneKeyDown}
             className={`rounded-2xl border border-dashed p-7 sm:p-8 shadow-[0_18px_34px_rgba(2,8,24,0.36)] focus:outline-hidden focus:ring-2 focus:ring-cyan-300/80 ${
               isDragActive
-                ? "border-cyan-300/70 bg-gradient-to-br from-cyan-400/25 via-slate-900/60 to-slate-800/45"
-                : "border-white/35 bg-gradient-to-br from-slate-950/72 via-slate-900/56 to-slate-800/42"
+                ? "border-cyan-300/70 bg-linear-to-br from-cyan-400/25 via-slate-900/60 to-slate-800/45"
+                : "border-white/35 bg-linear-to-br from-slate-950/72 via-slate-900/56 to-slate-800/42"
             }`}
           >
             <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
@@ -362,7 +474,7 @@ export function ResumeAnalyzerView() {
 
         <DashboardPanel title="Role Suggestions" description="Suggested job roles based on resume strengths.">
           <div className="space-y-4">
-            {roleMatches.map((item) => (
+            {roleMatchesData.map((item) => (
               <div key={item.role} className={compactGlassCardClass}>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <p className="font-medium text-slate-100">{item.role}</p>
@@ -382,11 +494,11 @@ export function ResumeAnalyzerView() {
           description="Current skill coverage versus the target level for your roles."
         >
           <div className="space-y-4">
-            {skillGaps.map((gap) => (
+            {skillGapsData.map((gap) => (
               <div key={gap.skill} className={glassItemCardClass}>
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <p className="font-medium text-slate-100">{gap.skill}</p>
-                  <StatusBadge tone={priorityTone[gap.priority]}>{gap.priority}</StatusBadge>
+                  <StatusBadge tone={getPriorityTone(gap.priority)}>{gap.priority}</StatusBadge>
                 </div>
                 <ProgressMeter
                   label="Current level"
@@ -414,7 +526,7 @@ export function ResumeAnalyzerView() {
           }
         >
           <ul className="space-y-3">
-            {improvements.map((item) => (
+            {improvementsData.map((item) => (
               <li key={item} className={glassItemCardClass}>
                 <div className="flex items-start gap-3">
                   <FileText className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" />

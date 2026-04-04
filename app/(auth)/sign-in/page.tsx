@@ -22,8 +22,10 @@ export default function SignInPage() {
         
       });
       router.push("/dashboard");
-    } catch {
-      toast.error("Invalid credentials");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to sign in";
+      toast.error(message);
     }
   };
 

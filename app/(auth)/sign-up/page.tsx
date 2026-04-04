@@ -21,17 +21,29 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/auth/sign-up", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch("/api/auth/sign-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    if (res.ok) {
-      toast.success("Account created successfully!");
-      router.push("/dashboard");
-    } else {
-      toast.error("Failed to create account.");
+      const data = await res.json().catch(() => null);
+
+      if (res.ok) {
+        toast.success("Account created successfully!");
+        router.push("/dashboard");
+        return;
+      }
+
+      const message =
+        (typeof data?.error === "string" && data.error) ||
+        (typeof data?.message === "string" && data.message) ||
+        "Failed to create account.";
+
+      toast.error(message);
+    } catch {
+      toast.error("Unable to reach authentication service.");
     }
   };
 

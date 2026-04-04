@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { LOCAL_RESUME_PROFILE_KEY } from "@/lib/resume-profile";
 
 interface User {
   id: string;
@@ -18,6 +19,14 @@ interface UserContextType {
 
 
 const UserContext = createContext<UserContextType | null>(null);
+
+function clearCachedResumeProfile() {
+  try {
+    window.localStorage.removeItem(LOCAL_RESUME_PROFILE_KEY);
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+}
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -40,9 +49,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify(credentials),
     });
 
-    if (!res.ok) throw new Error("Login failed");
+    const data = await res.json().catch(() => null);
 
-    const data = await res.json();
+    if (!res.ok) {
+      const message =
+        (typeof data?.error === "string" && data.error) || "Login failed";
+      throw new Error(message);
+    }
+
+    clearCachedResumeProfile();
     setUser(data.user);
   };
 
@@ -55,6 +70,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Keep local logout resilient even if the network request fails.
     }
+    clearCachedResumeProfile();
     setUser(null);
   };
 

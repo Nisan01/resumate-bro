@@ -4,8 +4,10 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = "7d";
 
 export type JwtPayload = {
-name: string;
+  id?: string;
+  name: string;
   email: string;
+  avatarUrl?: string | null;
 };
 
 export function signToken(payload: JwtPayload): string {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { BookOpenCheck, BriefcaseBusiness, GraduationCap, Sparkles, Target } from "lucide-react";
 import {
   DashboardPageShell,
@@ -217,6 +217,10 @@ function inferTrackFromResumeSnapshot(): StudentTrack {
   return "btech";
 }
 
+interface RoadmapApiResponse {
+  roadmap: TrackRoadmap;
+}
+
 export function RoadmapView() {
   const track = useSyncExternalStore<StudentTrack>(
     () => () => {},
@@ -224,7 +228,40 @@ export function RoadmapView() {
     () => "btech",
   );
 
-  const selectedRoadmap: TrackRoadmap = trackRoadmaps[track];
+  const [roadmapsByTrack, setRoadmapsByTrack] = useState<Partial<Record<StudentTrack, TrackRoadmap>>>({});
+  const selectedRoadmap = roadmapsByTrack[track] ?? trackRoadmaps[track];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadRoadmapData = async () => {
+      try {
+        const res = await fetch(`/api/dashboard/roadmap?track=${track}`, {
+          credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const data = (await res.json()) as Partial<RoadmapApiResponse>;
+        if (cancelled) return;
+
+        if (data.roadmap) {
+          setRoadmapsByTrack((previous) => ({
+            ...previous,
+            [track]: data.roadmap,
+          }));
+        }
+      } catch {
+        // Keep local fallback roadmap for resilience.
+      }
+    };
+
+    void loadRoadmapData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [track]);
 
   return (
     <DashboardPageShell

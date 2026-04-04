@@ -1,6 +1,7 @@
 import React from 'react'
 import DashBoardNav from './_components/DashboardNav/Navbar'
 import {Inter} from "next/font/google";
+import { ResumeRequiredGate } from "@/components/dashboard/ResumeRequiredGate";
 
 
 const inter=Inter({
@@ -15,7 +16,7 @@ function layout({children}: { children: React.ReactNode }) {
 <>
 
 
-<div className={`w-full h-screen p-[10px] bg-[#D7CCD9] box-border ${inter.className}`}>
+<div className={`w-full h-screen p-2.5 bg-[#D7CCD9] box-border ${inter.className}`}>
         <div className="w-full h-full bg-gray-50 rounded-xl overflow-hidden">
           <div className="flex h-full">
 
@@ -39,7 +40,7 @@ function layout({children}: { children: React.ReactNode }) {
                 }}
               />
               <div className={`relative z-10 h-full overflow-y-auto  `}>
-                {children}
+                <ResumeRequiredGate>{children}</ResumeRequiredGate>
               </div>
             </div>
 

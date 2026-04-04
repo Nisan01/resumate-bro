@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   DashboardPageShell,
   DashboardPanel,
@@ -72,6 +75,45 @@ const deliverables = [
   },
 ];
 
+interface DeliverableItem {
+  item: string;
+  target: string;
+}
+
+interface ProjectsResponse {
+  metrics: {
+    activeProjects: { value: string; change: string; helperText: string };
+    completionRate: { value: string; change: string; helperText: string };
+    technicalDepth: { value: string; change: string; helperText: string };
+    portfolioImpact: { value: string; change: string; helperText: string };
+  };
+  projectPipeline: ProjectPipelineItem[];
+  deliverables: DeliverableItem[];
+}
+
+const defaultMetrics: ProjectsResponse["metrics"] = {
+  activeProjects: {
+    value: "3",
+    change: "2 this sprint",
+    helperText: "One close to review",
+  },
+  completionRate: {
+    value: "55%",
+    change: "+12 this month",
+    helperText: "Strong delivery trend",
+  },
+  technicalDepth: {
+    value: "68%",
+    change: "Growing",
+    helperText: "Backend evidence needed",
+  },
+  portfolioImpact: {
+    value: "73%",
+    change: "Recruiter-ready",
+    helperText: "Add metrics in project stories",
+  },
+};
+
 const glassItemCardClass =
   "rounded-2xl border border-white/24 bg-gradient-to-br from-slate-950/78 via-slate-900/64 to-slate-800/48 p-5 sm:p-6 backdrop-blur-md shadow-[0_14px_30px_rgba(2,8,24,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-200/40 hover:shadow-[0_20px_36px_rgba(12,74,110,0.4)]";
 
@@ -79,6 +121,47 @@ const glassActionButtonClass =
   "!border-white/35 !bg-slate-900/72 !text-slate-100 shadow-[0_10px_22px_rgba(2,8,24,0.34)] hover:!bg-slate-800/78 hover:!text-white";
 
 export function ProjectsView() {
+  const [metrics, setMetrics] = useState(defaultMetrics);
+  const [projectPipelineItems, setProjectPipelineItems] = useState<ProjectPipelineItem[]>(projectPipeline);
+  const [deliverableItems, setDeliverableItems] = useState<DeliverableItem[]>(deliverables);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProjectsData = async () => {
+      try {
+        const res = await fetch("/api/dashboard/projects", {
+          credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const data = (await res.json()) as Partial<ProjectsResponse>;
+        if (cancelled) return;
+
+        if (data.metrics) {
+          setMetrics(data.metrics);
+        }
+
+        if (Array.isArray(data.projectPipeline) && data.projectPipeline.length > 0) {
+          setProjectPipelineItems(data.projectPipeline);
+        }
+
+        if (Array.isArray(data.deliverables) && data.deliverables.length > 0) {
+          setDeliverableItems(data.deliverables);
+        }
+      } catch {
+        // Keep fallback UI values when API fails.
+      }
+    };
+
+    void loadProjectsData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <DashboardPageShell
       eyebrow="Projects"
@@ -88,33 +171,33 @@ export function ProjectsView() {
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Active Projects"
-          value="3"
-          change="2 this sprint"
-          helperText="One close to review"
+          value={metrics.activeProjects.value}
+          change={metrics.activeProjects.change}
+          helperText={metrics.activeProjects.helperText}
           tone="sky"
           icon={<Briefcase className="h-4 w-4" />}
         />
         <MetricCard
           label="Completion Rate"
-          value="55%"
-          change="+12 this month"
-          helperText="Strong delivery trend"
+          value={metrics.completionRate.value}
+          change={metrics.completionRate.change}
+          helperText={metrics.completionRate.helperText}
           tone="teal"
           icon={<CheckCircle2 className="h-4 w-4" />}
         />
         <MetricCard
           label="Technical Depth"
-          value="68%"
-          change="Growing"
-          helperText="Backend evidence needed"
+          value={metrics.technicalDepth.value}
+          change={metrics.technicalDepth.change}
+          helperText={metrics.technicalDepth.helperText}
           tone="amber"
           icon={<Code2 className="h-4 w-4" />}
         />
         <MetricCard
           label="Portfolio Impact"
-          value="73%"
-          change="Recruiter-ready"
-          helperText="Add metrics in project stories"
+          value={metrics.portfolioImpact.value}
+          change={metrics.portfolioImpact.change}
+          helperText={metrics.portfolioImpact.helperText}
           tone="rose"
           icon={<Rocket className="h-4 w-4" />}
         />
@@ -132,7 +215,7 @@ export function ProjectsView() {
           }
         >
           <div className="space-y-4">
-            {projectPipeline.map((project) => (
+            {projectPipelineItems.map((project) => (
               <article key={project.name} className={glassItemCardClass}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h3 className="text-base font-semibold text-slate-100">{project.name}</h3>
@@ -167,7 +250,7 @@ export function ProjectsView() {
 
         <DashboardPanel title="Portfolio Deliverables" description="High-impact outcomes to improve your profile signal.">
           <ul className="space-y-3">
-            {deliverables.map((deliverable) => (
+            {deliverableItems.map((deliverable) => (
               <li key={deliverable.item} className={glassItemCardClass}>
                 <p className="text-sm font-medium text-slate-100">{deliverable.item}</p>
                 <p className="mt-2 text-xs uppercase tracking-wide text-slate-300">Target: {deliverable.target}</p>
