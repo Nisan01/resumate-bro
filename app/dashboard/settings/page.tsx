@@ -462,7 +462,7 @@ export default function SettingsPage() {
 
       {/* ── Page content ── */}
       <div
-        className="relative z-10 max-w-5xl mx-auto settings-anim px-6 pb-20"
+        className="relative z-10 w-full settings-anim px-10 pb-20"
         style={{ paddingTop: 40, fontFamily: "'Soria', sans-serif" }}
       >
         {/* Header */}
@@ -482,7 +482,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Layout grid */}
-        <div className="grid gap-6" style={{ gridTemplateColumns: "220px 1fr" }}>
+        <div className="grid gap-6" style={{ gridTemplateColumns: "240px 1fr" }}>
 
           {/* ── Sidebar ── */}
           <aside
