@@ -102,6 +102,10 @@ export function MainDashboardView() {
   const router = useRouter();
 
   const firstName = user?.name?.trim().split(/\s+/)[0] || "there";
+ if(!loading){
+  console.log(user)
+
+ }
 
   const handleLogout = async () => {
     try {

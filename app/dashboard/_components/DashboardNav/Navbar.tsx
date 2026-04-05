@@ -97,6 +97,7 @@ const isActive = (path: string) => {
           src="/logo.png" 
           alt="Resumate Logo" 
           fill
+          sizes="50px"
           className="object-cover"
           priority
         />
@@ -190,7 +191,8 @@ const isActive = (path: string) => {
     <Image
       src={user?.avatarUrl || `https://api.dicebear.com/9.x/pixel-art/svg?seed=${user?.name || 'User'}`}
       alt={user?.name || 'User'}
-      fill // Use fill so it stays pinned to the animated wrapper
+      fill 
+      sizes='50PX'
       className="rounded-full object-cover"
     />
   </div>

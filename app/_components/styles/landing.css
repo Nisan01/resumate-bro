@@ -13,8 +13,7 @@
   --accent3:   #7ee8fa;
   --glow1:     rgba(196,176,255,0.15);
   --glow2:     rgba(126,232,250,0.12);
-  --font-head: 'Soria', sans-serif;
-  --font-body: 'Soria', sans-serif;
+
 
   background: var(--bg);
   color: var(--text);
