@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   Zap, UploadCloud, ImageIcon, FileText,
   CheckCircle2, ChevronDown, X, Briefcase, Building2, ArrowRight
@@ -59,33 +58,21 @@ function getExt(filename: string): AcceptedExt | null {
   return ALLOWED_EXTS.includes(ext as AcceptedExt) ? (ext as AcceptedExt) : null;
 }
 
-// ── Glowing pill chip ─────────────────────────────────────────────────────────
-function Chip({
-  label, selected, onClick, color = "purple"
-}: {
+// ── Chip ─────────────────────────────────────────────────────────────────────
+function Chip({ label, selected, onClick, color = "purple" }: {
   label: string; selected: boolean; onClick: () => void; color?: "purple" | "cyan";
 }) {
-  const colors = {
-    purple: {
-      active: { background: "rgba(196,176,255,0.20)", border: "1px solid rgba(196,176,255,0.60)", color: "#c4b0ff", boxShadow: "0 0 12px rgba(196,176,255,0.35)" },
-      idle:   { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)", color: "rgba(220,215,255,0.45)" },
-    },
-    cyan: {
-      active: { background: "rgba(126,232,250,0.15)", border: "1px solid rgba(126,232,250,0.55)", color: "#7ee8fa", boxShadow: "0 0 12px rgba(126,232,250,0.30)" },
-      idle:   { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)", color: "rgba(220,215,255,0.45)" },
-    },
-  };
-  const s = selected ? colors[color].active : colors[color].idle;
+  const active = color === "purple"
+    ? "bg-[#c4b0ff]/20 border-[#c4b0ff]/60 text-[#c4b0ff] shadow-[0_0_12px_rgba(196,176,255,0.35)]"
+    : "bg-[#7ee8fa]/15 border-[#7ee8fa]/55 text-[#7ee8fa] shadow-[0_0_12px_rgba(126,232,250,0.30)]";
+  const idle = "bg-white/4 border-white/10 text-[#dcd7ff]/45";
   return (
-    <motion.button
+    <button
       onClick={onClick}
-      whileHover={{ scale: 1.04 }}
-      whileTap={{ scale: 0.96 }}
-      className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-      style={{ ...s, cursor: "pointer" }}
+      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all hover:scale-[1.04] active:scale-[0.96] ${selected ? active : idle}`}
     >
       {label}
-    </motion.button>
+    </button>
   );
 }
 
@@ -95,15 +82,21 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
   const [stage, setStage] = useState<Stage>("idle");
   const [progress, setProgress] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
-
-  // Dialog state
   const [targetRole, setTargetRole] = useState("");
   const [industry, setIndustry] = useState("");
+  const [stepVisible, setStepVisible] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stepRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const localAnalysisRef = useRef<Record<string, any>>({});
+
+  // animate step text transitions
+  useEffect(() => {
+    setStepVisible(false);
+    const t = setTimeout(() => setStepVisible(true), 150);
+    return () => clearTimeout(t);
+  }, [stepIndex]);
 
   const processFile = useCallback((f: File) => {
     const ext = getExt(f.name);
@@ -134,16 +127,13 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // clicking Analyze opens dialog
   const handleAnalyzeClick = () => {
     if (!uploaded) return;
     setStage("dialog");
   };
 
-  // dialog submit triggers actual analysis
   const handleDialogSubmit = async () => {
     if (!uploaded) return;
-
     setStage("scanning");
     setProgress(0);
     setStepIndex(0);
@@ -194,7 +184,6 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
     if (stepRef.current) clearInterval(stepRef.current);
     setProgress(100);
     setStepIndex(SCAN_STEPS.length - 1);
-
     await new Promise(r => setTimeout(r, 600));
     setStage("done");
     setTimeout(() => onDone?.(), 800);
@@ -203,306 +192,179 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
   // ── DIALOG ────────────────────────────────────────────────────────────────
   if (stage === "dialog") {
     return (
-      <AnimatePresence>
-        <motion.div
-          key="dialog"
-          initial={{ opacity: 0, scale: 0.92, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92, y: 20 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-full lg:max-w-lg rounded-2xl p-6 flex flex-col gap-5 relative"
-          style={{
-            background: "rgba(10,13,28,0.95)",
-            border: "1px solid rgba(196,176,255,0.22)",
-            boxShadow: "0 0 60px rgba(196,176,255,0.10), 0 24px 64px rgba(0,0,0,0.5)",
-            backdropFilter: "blur(32px)",
-          }}
+      <div className="animate-[fadeUp_0.4s_ease_both] w-full lg:max-w-lg rounded-2xl p-6 flex flex-col gap-5 relative bg-[rgba(10,13,28,0.95)] border border-[#c4b0ff]/22 shadow-[0_0_60px_rgba(196,176,255,0.10),0_24px_64px_rgba(0,0,0,0.5)] backdrop-blur-[32px]">
+        {/* Glow top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-1 rounded-full bg-gradient-to-r from-transparent via-[#c4b0ff]/60 to-transparent" />
+
+        {/* Close */}
+        <button onClick={() => setStage("ready")} className="absolute top-4 right-4 p-1.5 rounded-lg bg-white/5 text-white/30 hover:text-white transition-colors">
+          <X size={14} />
+        </button>
+
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-[#c4b0ff]/10 border border-[#c4b0ff]/20">
+            <Briefcase size={16} className="text-[#c4b0ff]" />
+          </div>
+          <div>
+            <p className="font-bold text-white text-sm">One last thing</p>
+            <p className="text-xs text-[#dcd7ff]/45">Help us tailor your analysis</p>
+          </div>
+        </div>
+
+        <div className="h-px bg-white/6" />
+
+        {/* Target Role */}
+        <div className="flex flex-col gap-2.5">
+          <label className="text-xs font-semibold tracking-widest uppercase text-[#c4b0ff]/60">Target Role</label>
+          <div className="relative">
+            <Briefcase size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#c4b0ff]/45 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="e.g. Senior Frontend Engineer"
+              value={targetRole}
+              onChange={e => setTargetRole(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none bg-white/4 border border-[#c4b0ff]/20 text-white/85 caret-[#c4b0ff] focus:border-[#c4b0ff]/55 transition-colors"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {ROLE_SUGGESTIONS.map(r => (
+              <Chip key={r} label={r} selected={targetRole === r} onClick={() => setTargetRole(r)} color="purple" />
+            ))}
+          </div>
+        </div>
+
+        {/* Industry */}
+        <div className="flex flex-col gap-2.5">
+          <label className="text-xs font-semibold tracking-widest uppercase text-[#7ee8fa]/60">Industry</label>
+          <div className="relative">
+            <Building2 size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7ee8fa]/45 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="e.g. Fintech, Healthcare, SaaS..."
+              value={industry}
+              onChange={e => setIndustry(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none bg-white/4 border border-[#7ee8fa]/20 text-white/85 caret-[#7ee8fa] focus:border-[#7ee8fa]/55 transition-colors"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {INDUSTRY_SUGGESTIONS.map(ind => (
+              <Chip key={ind} label={ind} selected={industry === ind} onClick={() => setIndustry(ind)} color="cyan" />
+            ))}
+          </div>
+        </div>
+
+        {/* Submit */}
+        <button
+          onClick={handleDialogSubmit}
+          className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold bg-gradient-to-r from-[#c4b0ff] to-[#7ee8fa] text-[#080b12] shadow-[0_0_24px_rgba(196,176,255,0.30)] hover:brightness-110 hover:-translate-y-px transition-all mt-1"
         >
-          {/* Glow top */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-1 rounded-full"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(196,176,255,0.6), transparent)" }} />
+          <Zap size={14} />
+          Start Analysis
+          <ArrowRight size={14} />
+        </button>
 
-          {/* Close */}
-          <button
-            onClick={() => setStage("ready")}
-            className="absolute top-4 right-4 p-1.5 rounded-lg transition-colors"
-            style={{ color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.05)", border: "none", cursor: "pointer" }}
-          >
-            <X size={14} />
-          </button>
-
-          {/* Header */}
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl" style={{ background: "rgba(196,176,255,0.10)", border: "1px solid rgba(196,176,255,0.20)" }}>
-              <Briefcase size={16} style={{ color: "#c4b0ff" }} />
-            </div>
-            <div>
-              <p className="font-bold text-white text-sm">One last thing</p>
-              <p className="text-xs" style={{ color: "rgba(220,215,255,0.45)" }}>
-                Help us tailor your analysis
-              </p>
-            </div>
-          </div>
-
-          <div className="h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-
-          {/* Target Role */}
-          <div className="flex flex-col gap-2.5">
-            <label className="text-xs font-semibold tracking-widest uppercase"
-              style={{ color: "rgba(196,176,255,0.60)" }}>
-              Target Role
-            </label>
-            <div className="relative">
-              <Briefcase size={13} className="absolute left-3 top-1/2 -translate-y-1/2"
-                style={{ color: "rgba(196,176,255,0.45)", pointerEvents: "none" }} />
-              <input
-                type="text"
-                placeholder="e.g. Senior Frontend Engineer"
-                value={targetRole}
-                onChange={e => setTargetRole(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(196,176,255,0.20)",
-                  color: "rgba(255,255,255,0.85)",
-                  caretColor: "#c4b0ff",
-                }}
-                onFocus={e => e.target.style.borderColor = "rgba(196,176,255,0.55)"}
-                onBlur={e => e.target.style.borderColor = "rgba(196,176,255,0.20)"}
-              />
-            </div>
-            {/* Role chips */}
-            <div className="flex flex-wrap gap-1.5">
-              {ROLE_SUGGESTIONS.map(r => (
-                <Chip key={r} label={r} selected={targetRole === r}
-                  onClick={() => setTargetRole(r)} color="purple" />
-              ))}
-            </div>
-          </div>
-
-          {/* Industry */}
-          <div className="flex flex-col gap-2.5">
-            <label className="text-xs font-semibold tracking-widest uppercase"
-              style={{ color: "rgba(126,232,250,0.60)" }}>
-              Industry
-            </label>
-            <div className="relative">
-              <Building2 size={13} className="absolute left-3 top-1/2 -translate-y-1/2"
-                style={{ color: "rgba(126,232,250,0.45)", pointerEvents: "none" }} />
-              <input
-                type="text"
-                placeholder="e.g. Fintech, Healthcare, SaaS..."
-                value={industry}
-                onChange={e => setIndustry(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(126,232,250,0.20)",
-                  color: "rgba(255,255,255,0.85)",
-                  caretColor: "#7ee8fa",
-                }}
-                onFocus={e => e.target.style.borderColor = "rgba(126,232,250,0.55)"}
-                onBlur={e => e.target.style.borderColor = "rgba(126,232,250,0.20)"}
-              />
-            </div>
-            {/* Industry chips */}
-            <div className="flex flex-wrap gap-1.5">
-              {INDUSTRY_SUGGESTIONS.map(ind => (
-                <Chip key={ind} label={ind} selected={industry === ind}
-                  onClick={() => setIndustry(ind)} color="cyan" />
-              ))}
-            </div>
-          </div>
-
-          {/* Submit */}
-          <motion.button
-            onClick={handleDialogSubmit}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold mt-1"
-            style={{
-              background: "linear-gradient(135deg, #c4b0ff, #7ee8fa)",
-              color: "#080b12",
-              border: "none",
-              cursor: "pointer",
-              boxShadow: "0 0 24px rgba(196,176,255,0.30)",
-            }}
-          >
-            <Zap size={14} />
-            Start Analysis
-            <ArrowRight size={14} />
-          </motion.button>
-
-          {/* Skip */}
-          <button
-            onClick={handleDialogSubmit}
-            className="text-xs text-center underline underline-offset-2 w-full"
-            style={{ color: "rgba(255,255,255,0.20)", background: "none", border: "none", cursor: "pointer" }}
-          >
-            Skip — use defaults
-          </button>
-        </motion.div>
-      </AnimatePresence>
+        <button onClick={handleDialogSubmit} className="text-xs text-center underline underline-offset-2 text-white/20 w-full">
+          Skip — use defaults
+        </button>
+      </div>
     );
   }
 
   // ── SCANNING ──────────────────────────────────────────────────────────────
   if (stage === "scanning") {
     return (
-      <motion.div
-        key="scanning-full"
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full flex flex-col items-center justify-center gap-6 py-10 px-4"
-        style={{ minHeight: 420 }}
-      >
+      <div className="animate-[fadeUp_0.5s_ease_both] w-full flex flex-col items-center justify-center gap-6 py-10 px-4" style={{ minHeight: 420 }}>
         <div className="relative flex items-center justify-center">
-          <div className="absolute w-48 h-48 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(196,176,255,0.18) 0%, transparent 70%)", filter: "blur(18px)" }} />
+          <div className="absolute w-48 h-48 rounded-full bg-[radial-gradient(circle,rgba(196,176,255,0.18)_0%,transparent_70%)] blur-[18px]" />
           <Lottie animationData={scanAnimation} style={{ width: 160, position: "relative", zIndex: 1 }} />
         </div>
 
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full"
-          style={{ background: "rgba(196,176,255,0.10)", border: "1px solid rgba(196,176,255,0.22)" }}>
-          <FileText size={13} style={{ color: "#c4b0ff" }} />
-          <span className="text-xs font-medium truncate max-w-[180px]" style={{ color: "#c4b0ff" }}>
-            {uploaded?.file.name}
-          </span>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#c4b0ff]/10 border border-[#c4b0ff]/22">
+          <FileText size={13} className="text-[#c4b0ff]" />
+          <span className="text-xs font-medium truncate max-w-[180px] text-[#c4b0ff]">{uploaded?.file.name}</span>
         </div>
 
         {targetRole && (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full"
-            style={{ background: "rgba(126,232,250,0.08)", border: "1px solid rgba(126,232,250,0.20)" }}>
-            <Briefcase size={11} style={{ color: "#7ee8fa" }} />
-            <span className="text-xs" style={{ color: "#7ee8fa" }}>{targetRole}</span>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#7ee8fa]/8 border border-[#7ee8fa]/20">
+            <Briefcase size={11} className="text-[#7ee8fa]" />
+            <span className="text-xs text-[#7ee8fa]">{targetRole}</span>
             {industry && <>
-              <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
-              <span className="text-xs" style={{ color: "rgba(126,232,250,0.7)" }}>{industry}</span>
+              <span className="text-white/20">·</span>
+              <span className="text-xs text-[#7ee8fa]/70">{industry}</span>
             </>}
           </div>
         )}
 
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={stepIndex}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.35 }}
-            className="text-sm font-medium text-center"
-            style={{ color: "rgba(220,215,255,0.75)" }}
-          >
-            {SCAN_STEPS[stepIndex]}
-          </motion.p>
-        </AnimatePresence>
+        {/* Step text with fade transition */}
+        <p className={`text-sm font-medium text-center text-[#dcd7ff]/75 transition-all duration-300 ${stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
+          {SCAN_STEPS[stepIndex]}
+        </p>
 
         <div className="w-full max-w-sm">
-          <div className="flex justify-between text-xs mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <div className="flex justify-between text-xs mb-1.5 text-white/30">
             <span>Analyzing</span>
             <span>{progress}%</span>
           </div>
-          <div className="w-full h-1.5 rounded-full overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.08)" }}>
-            <motion.div
-              className="h-full rounded-full"
-              style={{ background: "linear-gradient(90deg, #c4b0ff, #7ee8fa)" }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+          <div className="w-full h-1.5 rounded-full overflow-hidden bg-white/8">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[#c4b0ff] to-[#7ee8fa] transition-all duration-[400ms] ease-out"
+              style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-1.5 w-full max-w-sm">
           {SCAN_STEPS.slice(0, stepIndex + 1).map((step, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.05 }} className="flex items-center gap-2">
-              <CheckCircle2 size={11}
-                style={{ color: i < stepIndex ? "#22c55e" : "#c4b0ff", flexShrink: 0 }} />
-              <span className="text-xs"
-                style={{ color: i < stepIndex ? "rgba(34,197,94,0.7)" : "rgba(220,215,255,0.55)" }}>
-                {step}
-              </span>
-            </motion.div>
+            <div key={i} className="animate-[fadeUp_0.3s_ease_both] flex items-center gap-2">
+              <CheckCircle2 size={11} className={i < stepIndex ? "text-green-500" : "text-[#c4b0ff]"} style={{ flexShrink: 0 }} />
+              <span className={`text-xs ${i < stepIndex ? "text-green-500/70" : "text-[#dcd7ff]/55"}`}>{step}</span>
+            </div>
           ))}
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   // ── DONE ──────────────────────────────────────────────────────────────────
   if (stage === "done") {
     return (
-      <motion.div
-        key="done-full"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
-        className="w-full flex flex-col items-center justify-center gap-5 py-10 px-4 text-center"
-        style={{ minHeight: 420 }}
-      >
+      <div className="animate-[fadeUp_0.55s_ease_both] w-full flex flex-col items-center justify-center gap-5 py-10 px-4 text-center" style={{ minHeight: 420 }}>
         <div className="relative flex items-center justify-center">
-          <motion.div
-            className="absolute rounded-full"
-            style={{ width: 120, height: 120, background: "radial-gradient(circle, rgba(34,197,94,0.20) 0%, transparent 70%)" }}
-            animate={{ scale: [1, 1.15, 1] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            initial={{ scale: 0, rotate: -30 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 200, damping: 14 }}
-            className="relative z-10 flex items-center justify-center w-20 h-20 rounded-full"
-            style={{ background: "rgba(34,197,94,0.12)", border: "1.5px solid rgba(34,197,94,0.35)" }}
-          >
-            <CheckCircle2 size={40} style={{ color: "#22c55e" }} />
-          </motion.div>
+          <div className="absolute w-[120px] h-[120px] rounded-full bg-[radial-gradient(circle,rgba(34,197,94,0.20)_0%,transparent_70%)] animate-pulse" />
+          <div className="animate-[fadeUp_0.4s_ease_both] relative z-10 flex items-center justify-center w-20 h-20 rounded-full bg-green-500/12 border border-green-500/35">
+            <CheckCircle2 size={40} className="text-green-500" />
+          </div>
         </div>
 
         <div>
-          <motion.p initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="text-xl font-bold" style={{ color: "#f0eeff" }}>
+          <p className="animate-[fadeUp_0.5s_ease_both] text-xl font-bold text-[#f0eeff]" style={{ animationDelay: "0.1s" }}>
             Analysis Complete!
-          </motion.p>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-            className="text-xs mt-1" style={{ color: "rgba(220,215,255,0.45)" }}>
-            Analyzed for <span style={{ color: "#c4b0ff" }}>{targetRole || "Software Engineer"}</span>
-            {industry && <> · <span style={{ color: "#7ee8fa" }}>{industry}</span></>}
-          </motion.p>
+          </p>
+          <p className="animate-[fadeUp_0.5s_ease_both] text-xs mt-1 text-[#dcd7ff]/45" style={{ animationDelay: "0.2s" }}>
+            Analyzed for <span className="text-[#c4b0ff]">{targetRole || "Software Engineer"}</span>
+            {industry && <> · <span className="text-[#7ee8fa]">{industry}</span></>}
+          </p>
         </div>
 
-        <motion.button
+        <button
           onClick={() => onDone?.()}
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
-          style={{
-            background: "linear-gradient(135deg, rgba(196,176,255,0.15), rgba(126,232,250,0.10))",
-            border: "1px solid rgba(196,176,255,0.30)",
-            color: "#c4b0ff",
-            cursor: "pointer",
-          }}
+          className="animate-[fadeUp_0.5s_ease_both] flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-[#c4b0ff]/15 to-[#7ee8fa]/10 border border-[#c4b0ff]/30 text-[#c4b0ff] hover:brightness-110 transition-all"
+          style={{ animationDelay: "0.3s" }}
         >
           View Results <ChevronDown size={15} />
-        </motion.button>
+        </button>
 
-        <button onClick={removeFile} className="text-xs underline underline-offset-2"
-          style={{ color: "rgba(255,255,255,0.25)", cursor: "pointer", background: "none", border: "none" }}>
+        <button onClick={removeFile} className="text-xs underline underline-offset-2 text-white/25">
           Analyze another resume
         </button>
-      </motion.div>
+      </div>
     );
   }
 
   // ── IDLE / READY ──────────────────────────────────────────────────────────
   return (
-    <motion.div
-      key="uploader"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="w-full lg:max-w-lg rounded-2xl border border-white/10 backdrop-blur-3xl bg-gradient-to-br from-purple-900/30 to-blue-900/20 p-6 flex flex-col gap-4"
-    >
+    <div className="animate-[fadeUp_0.5s_ease_both] w-full lg:max-w-lg rounded-2xl border border-white/10 backdrop-blur-3xl bg-gradient-to-br from-purple-900/30 to-blue-900/20 p-6 flex flex-col gap-4">
       <div>
         <p className="font-extrabold text-white">Resume Analyzer</p>
         <p className="text-xs text-white/50">Upload your resume</p>
@@ -513,60 +375,48 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
-        className="flex flex-col items-center justify-center rounded-xl p-6 text-center cursor-pointer transition-all duration-200"
+        className={`flex flex-col items-center justify-center rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${isDragging ? "bg-[#a78bfa]/5" : "bg-transparent"}`}
         style={{
           minHeight: "240px",
           border: `1.5px dashed ${isDragging ? "#a78bfa" : "rgba(255,255,255,0.25)"}`,
-          background: isDragging ? "rgba(167,139,250,0.05)" : "transparent",
         }}
       >
-        <AnimatePresence mode="wait">
-          {stage === "idle" && (
-            <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-2">
-              <UploadCloud size={32} className="text-purple-300" />
-              <p className="text-white font-semibold">Drop your resume</p>
-              <p className="text-xs text-white/40">PDF, JPG or PNG · or click to browse</p>
-            </motion.div>
-          )}
-          {stage === "ready" && uploaded && (
-            <motion.div key="ready" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-3">
-              {uploaded.isImage
-                ? <ImageIcon size={42} className="text-purple-400" />
-                : <FileText size={42} className="text-purple-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
-              }
-              <p className="text-white text-sm font-medium truncate max-w-[200px]">{uploaded.file.name}</p>
-              <p className="text-xs text-white/40">{uploaded.sizeLabel}</p>
-              <button onClick={(e) => { e.stopPropagation(); removeFile(); }}
-                className="text-xs underline underline-offset-2"
-                style={{ color: "rgba(255,100,100,0.6)", background: "none", border: "none", cursor: "pointer" }}>
-                Remove
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+        {stage === "idle" && (
+          <div className="animate-[fadeUp_0.4s_ease_both] flex flex-col items-center gap-2">
+            <UploadCloud size={32} className="text-purple-300" />
+            <p className="text-white font-semibold">Drop your resume</p>
+            <p className="text-xs text-white/40">PDF, JPG or PNG · or click to browse</p>
+          </div>
+        )}
+        {stage === "ready" && uploaded && (
+          <div className="animate-[fadeUp_0.4s_ease_both] flex flex-col items-center gap-3">
+            {uploaded.isImage
+              ? <ImageIcon size={42} className="text-purple-400" />
+              : <FileText size={42} className="text-purple-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
+            }
+            <p className="text-white text-sm font-medium truncate max-w-[200px]">{uploaded.file.name}</p>
+            <p className="text-xs text-white/40">{uploaded.sizeLabel}</p>
+            <button onClick={(e) => { e.stopPropagation(); removeFile(); }} className="text-xs underline underline-offset-2 text-red-400/60">
+              Remove
+            </button>
+          </div>
+        )}
         <input ref={fileInputRef} type="file" hidden accept=".pdf,.jpg,.jpeg,.png" onChange={handleInputChange} />
       </div>
 
-      <motion.button
+      <button
         onClick={handleAnalyzeClick}
         disabled={!uploaded}
-        whileHover={uploaded ? { opacity: 0.9 } : {}}
-        whileTap={uploaded ? { scale: 0.98 } : {}}
-        className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold"
+        className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-all"
         style={{
           background: uploaded ? "#FFD000" : "rgba(0,0,0,0.25)",
           color: uploaded ? "#1a0e00" : "rgba(255,255,255,0.3)",
           cursor: uploaded ? "pointer" : "not-allowed",
-          border: "none",
-          transition: "background 0.2s",
         }}
       >
         <Zap size={14} />
         Analyze Resume
-      </motion.button>
-    </motion.div>
+      </button>
+    </div>
   );
 }

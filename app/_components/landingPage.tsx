@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 /* ─────────────────────────────────────────────
@@ -366,8 +367,10 @@ export default function Page() {
 
             {/* cta */}
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <a href="login-page.html" className="btn btn-ghost" style={{ padding: "9px 18px", borderRadius: 8, fontSize: "0.875rem", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Login</a>
-              <a href="signup-page.html" className="btn btn-primary" style={{ padding: "9px 20px", borderRadius: 8, fontSize: "0.875rem", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Sign Up</a>
+<Link href="/sign-in" className="btn btn-ghost" style={{ padding: "9px 18px", borderRadius: 8, fontSize: "0.875rem", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Login</Link>
+              <Link href="/sign-up" className="btn btn-primary" style={{ padding: "9px 20px", borderRadius: 8, fontSize: "0.875rem", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Sign Up</Link>
+              {/* hamburger */}
+
               {/* hamburger */}
               <button onClick={() => setMenuOpen(!menuOpen)} style={{ display: "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 4 }} className="hamburger-btn">
                 {[0,1,2].map(i => <span key={i} style={{ width: 22, height: 2, background: S.muted, borderRadius: 2, display: "block" }} />)}

@@ -1,4 +1,3 @@
-// app/api/parse/parse-resume/route.ts
 
 import { NextRequest } from 'next/server';
 import { extractText as unpdfExtract } from 'unpdf';
@@ -32,55 +31,68 @@ function emit(
 async function askAI(
   section: string,
   prompt: string,
-  controller: ReadableStreamDefaultController
-) {
-  try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'stepfun/step-3.5-flash:free',
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-
-    if (!res.ok) {
-      console.error(`[${section}] HTTP error:`, res.status);
-      emit(controller, section, { error: 'API error' });
-      return;
-    }
-
-    const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content;
-
-    if (!raw) {
-      console.error(`[${section}] Empty response`);
-      emit(controller, section, {});
-      return;
-    }
-
+  controller: ReadableStreamDefaultController,
+  retries = 3
+): Promise<number> {
+  for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const parsed = JSON.parse(
-        raw.replace(/```json|```/g, '').trim()
-      );
-      emit(controller, section, parsed);
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'stepfun/step-3.5-flash:free',
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      if (res.status === 429) {
+        const wait = (attempt + 1) * 8000; // 8s, 16s, 24s
+        console.warn(`[${section}] 429 rate limit — retrying in ${wait}ms...`);
+        await new Promise(r => setTimeout(r, wait));
+        continue;
+      }
+
+      if (!res.ok) {
+        console.error(`[${section}] HTTP error:`, res.status);
+        emit(controller, section, { error: 'API error' });
+        return 0;
+      }
+
+      const data = await res.json();
+      const raw = data.choices?.[0]?.message?.content;
+      const tokens: number = data.usage?.total_tokens ?? 0;
+
+      if (!raw) { emit(controller, section, {}); return tokens; }
+
+      try {
+        const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+        emit(controller, section, parsed);
+      } catch {
+        emit(controller, section, {});
+      }
+
+      return tokens;
+
     } catch (err) {
-      console.error(`[${section}] JSON parse failed`);
-      emit(controller, section, {});
+      console.error(`[${section}] fetch failed:`, err);
+      emit(controller, section, { error: 'Network failure' });
+      return 0;
     }
-
-  } catch (err) {
-    console.error(`[${section}] fetch failed:`, err);
-    emit(controller, section, { error: 'Network failure' });
   }
-}
 
-export async function POST(req: NextRequest) {    
+  // All retries exhausted
+  console.error(`[${section}] All retries failed`);
+  emit(controller, section, { error: 'Rate limit exceeded' });
+  return 0;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();  
+    const formData = await req.formData();
     const file = formData.get('file') as File;
     const targetRole =
       (formData.get('targetRole') as string) || 'Software Engineer';
@@ -111,6 +123,8 @@ export async function POST(req: NextRequest) {
             currentRole: '',
             targetRole,
           };
+
+          let headerTokens = 0; // ── track header tokens
 
           try {
             console.log('🚀 Fetching header info...');
@@ -151,6 +165,8 @@ ${text.slice(0, 2000)}`,
             const headerRaw =
               headerData.choices?.[0]?.message?.content ?? '{}';
 
+            headerTokens = headerData.usage?.total_tokens ?? 0; // ── grab header tokens
+
             header = JSON.parse(
               headerRaw.replace(/```json|```/g, '').trim()
             );
@@ -167,7 +183,7 @@ ${text.slice(0, 2000)}`,
 
           console.log('🚀 Starting all analysis sections...');
 
-          await Promise.allSettled([
+          const results = await Promise.allSettled([
             askAI('contactInfo', analyzeContactInfoPrompt(text), controller),
             askAI('summary', analyzeSummaryPrompt(text, targetRole), controller),
             askAI(
@@ -192,6 +208,17 @@ ${text.slice(0, 2000)}`,
               controller
             ),
           ]);
+
+          // ── sum all tokens and emit as a stream section ───────────────────
+          const sectionTokens = results.reduce(
+            (sum, r) => sum + (r.status === 'fulfilled' ? r.value : 0),
+            0
+          );
+          const totalTokensUsed = headerTokens + sectionTokens;
+
+          console.log(`🪙 Total tokens used: ${totalTokensUsed}`);
+          emit(controller, 'totalTokensUsed', { count: totalTokensUsed });
+          // ─────────────────────────────────────────────────────────────────
 
         } catch (err) {
           console.error('💥 Stream fatal error:', err);

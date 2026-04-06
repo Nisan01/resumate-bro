@@ -33,6 +33,13 @@ export const jobReadinessEnum = pgEnum("job_readiness", [
   "job_ready",
 ]);
 
+
+export const projectStatusEnum = pgEnum("project_status", [
+  "active",
+  "progress",
+  "planning",
+  "done",
+]);
 // ============================================================
 // 1. USERS
 // ============================================================
@@ -104,9 +111,49 @@ export const resumeAnalyses = pgTable("resume_analyses", {
   highSignalSignals: jsonb("high_signal_signals"), // Store strengths
   
   rawJsonFeedback: jsonb("raw_json_feedback"), // The complete analysis blob
+  totalTokensUsed: integer("total_tokens_used").default(0),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+
+export const projects = pgTable("projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+
+  // Core Fields
+  name: varchar("name", { length: 150 }).notNull(),
+  emoji: varchar("emoji", { length: 10 }).default("🚀"),
+  status: projectStatusEnum("status").default("planning"),
+
+  description: text("description"),
+
+  // Arrays stored as JSON
+  techTags: jsonb("tech_tags").$type<string[]>(), // ["React", "FastAPI"]
+  steps: jsonb("steps").$type<string[]>(), // ["Step 1", "Step 2"]
+
+  progress: integer("progress").default(0), // 0–100
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================================
+// 2. RELATIONS
+// ============================================================
+
+export const projectsRelations = relations(projects, ({ one }) => ({
+  user: one(users, { fields: [projects.userId], references: [users.id] }),
+}));
+
+// ============================================================
+// 3. TYPE EXPORTS
+// ============================================================
+
+export type Project = typeof projects.$inferSelect;
 
 // ============================================================
 // RELATIONS

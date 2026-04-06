@@ -24,6 +24,7 @@ try {
       body: JSON.stringify({
         analysis: analysis,
         userId: user?.id, 
+        totalTokensUsed: analysis.totalTokensUsed?.count ?? 0,
       }),
     });
 

@@ -621,7 +621,7 @@ export default function AnalysisResult({ analysis }: Props) {
 
             <div className="text-[44px] sm:text-[32px] font-bold leading-[1.08] tracking-[-0.03em] mb-2">
               <em className="not-italic anim-shimmer gt-purple-cyan">
-                {analysis?.contactInfo?.contact_fields[0]?.value || <Spinner />}
+                {analysis?.contactInfo?.contact_fields?.[0]?.value || <Spinner />}
               </em>
             </div>
             <div className={`flex items-center ${analysis?.header?.currentRole ? "text-[15px] font-light" : "text-[15px] font-light text-gray-600"}`}>
