@@ -31,7 +31,9 @@ export default function SignUpPage() {
       toast.success("Account created successfully!");
       router.push("/dashboard");
     } else {
-      toast.error("Failed to create account.");
+      const data = await res.json().catch(() => ({}));
+      console.error("SignUp Error:", data);
+      toast.error(data.error || "Failed to create account.");
     }
   };
 
