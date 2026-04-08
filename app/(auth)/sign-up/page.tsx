@@ -355,20 +355,23 @@ export default function SignUpPage() {
           <div className="w-full max-w-[400px]">
             {/* Logo */}
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="flex items-center gap-3 mb-5"
-            >
-              <motion.div
-                whileHover={{ rotate: 360, scale: 1.1 }}
-                transition={{ duration: 0.5 }}
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-r from-[#c4b0ff] via-[#7ee8fa] to-[#ff9de2] flex items-center justify-center text-lg sm:text-xl text-[#0a0714] shadow-[0_4px_16px_rgba(196,176,255,0.36)]"
-              >
-                ✦
-              </motion.div>
-              <span className="font-bold text-lg sm:text-xl tracking-[-0.02em]">Resumate</span>
-            </motion.div>
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+  className="flex items-center gap-3 mb-8"
+>
+  <motion.div
+    whileHover={{ scale: 1.1 }}
+    transition={{ duration: 0.5 }}
+  >
+    <img
+      src="logo.png"
+      alt="Resumate Logo"
+      className="w-10 h-10 sm:w-11 sm:h-11 object-contain"
+    />
+  </motion.div>
+  <span className="font-bold text-lg sm:text-xl tracking-[-0.02em]">Resumate</span>
+</motion.div>
 
             <motion.h2
               initial={{ opacity: 0, x: -20 }}
