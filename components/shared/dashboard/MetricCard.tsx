@@ -4,43 +4,34 @@ import { cn } from "@/lib/utils";
 
 type MetricTone = "teal" | "amber" | "sky" | "rose";
 
-const toneStyles: Record<
-  MetricTone,
-  {
-    card: string;
-    badge: string;
-    helper: string;
-    glow: string;
-    icon: string;
-  }
-> = {
+const toneStyles: Record<MetricTone, { border: string; orb: string; badge: string; valuColor: string; iconRing: string }> = {
   teal: {
-    card: "border-teal-300/30 bg-gradient-to-br from-teal-400/42 via-cyan-500/24 to-slate-950/80",
-    badge: "border-teal-200/55 bg-slate-950/44 text-teal-100",
-    helper: "text-slate-100/92",
-    glow: "bg-teal-300/26",
-    icon: "border-teal-200/45 bg-slate-950/40 text-teal-100",
+    border: "border-teal-500/20 hover:border-teal-500/35",
+    orb: "bg-teal-500/15",
+    badge: "bg-teal-500/10 border-teal-500/25 text-teal-300",
+    valuColor: "text-teal-100",
+    iconRing: "border-teal-500/25 bg-teal-500/10 text-teal-300",
   },
   amber: {
-    card: "border-amber-300/30 bg-gradient-to-br from-amber-400/44 via-orange-500/24 to-slate-950/80",
-    badge: "border-amber-200/55 bg-slate-950/44 text-amber-100",
-    helper: "text-slate-100/92",
-    glow: "bg-amber-300/26",
-    icon: "border-amber-200/45 bg-slate-950/40 text-amber-100",
+    border: "border-amber-500/20 hover:border-amber-500/35",
+    orb: "bg-amber-500/15",
+    badge: "bg-amber-500/10 border-amber-500/25 text-amber-300",
+    valuColor: "text-amber-100",
+    iconRing: "border-amber-500/25 bg-amber-500/10 text-amber-300",
   },
   sky: {
-    card: "border-sky-300/30 bg-gradient-to-br from-sky-400/44 via-blue-500/24 to-slate-950/80",
-    badge: "border-sky-200/55 bg-slate-950/44 text-sky-100",
-    helper: "text-slate-100/92",
-    glow: "bg-sky-300/26",
-    icon: "border-sky-200/45 bg-slate-950/40 text-sky-100",
+    border: "border-sky-500/20 hover:border-sky-500/35",
+    orb: "bg-sky-500/15",
+    badge: "bg-sky-500/10 border-sky-500/25 text-sky-300",
+    valuColor: "text-sky-100",
+    iconRing: "border-sky-500/25 bg-sky-500/10 text-sky-300",
   },
   rose: {
-    card: "border-rose-300/30 bg-gradient-to-br from-rose-400/40 via-fuchsia-500/24 to-slate-950/80",
-    badge: "border-rose-200/55 bg-slate-950/44 text-rose-100",
-    helper: "text-slate-100/92",
-    glow: "bg-rose-300/26",
-    icon: "border-rose-200/45 bg-slate-950/40 text-rose-100",
+    border: "border-rose-500/20 hover:border-rose-500/35",
+    orb: "bg-rose-500/15",
+    badge: "bg-rose-500/10 border-rose-500/25 text-rose-300",
+    valuColor: "text-rose-100",
+    iconRing: "border-rose-500/25 bg-rose-500/10 text-rose-300",
   },
 };
 
@@ -53,39 +44,34 @@ interface MetricCardProps {
   icon?: ReactNode;
 }
 
-export function MetricCard({
-  label,
-  value,
-  change,
-  helperText,
-  tone = "teal",
-  icon,
-}: MetricCardProps) {
+export function MetricCard({ label, value, change, helperText, tone = "teal", icon }: MetricCardProps) {
   const style = toneStyles[tone];
 
   return (
-    <Card
-      className={cn(
-        "group relative overflow-hidden rounded-2xl border text-slate-50 backdrop-blur-xl shadow-[0_16px_34px_rgba(8,15,30,0.38)] ring-1 ring-white/8 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_38px_rgba(8,15,30,0.52)]",
-        style.card,
-      )}
-    >
-      <span className={cn("pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full blur-2xl", style.glow)} />
-      <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/65 to-transparent opacity-70" />
+    <Card className={cn(
+      "group relative overflow-hidden rounded-2xl border bg-white/[0.03] text-white backdrop-blur-xl shadow-[0_16px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(0,0,0,0.45)]",
+      style.border,
+    )}>
+      {/* Orb */}
+      <span className={cn("pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-2xl transition-opacity duration-300 group-hover:opacity-150", style.orb)} />
+      {/* Shimmer */}
+      <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
 
       <CardContent className="relative p-6 sm:p-7">
         <div className="mb-4 flex items-start justify-between gap-3">
-          <p className="text-sm font-medium text-slate-100">{label}</p>
-          {icon ? (
-            <div className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl border", style.icon)}>{icon}</div>
-          ) : null}
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/30">{label}</p>
+          {icon && (
+            <div className={cn("inline-flex h-9 w-9 items-center justify-center rounded-xl border", style.iconRing)}>
+              {icon}
+            </div>
+          )}
         </div>
 
-        <p className="text-3xl font-semibold tracking-tight text-white">{value}</p>
+        <p className={cn("text-3xl font-bold tracking-tight tabular-nums", style.valuColor)}>{value}</p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
-          <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold", style.badge)}>{change}</span>
-          <p className={cn("text-xs", style.helper)}>{helperText}</p>
+          <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold", style.badge)}>{change}</span>
+          {helperText && <p className="text-[11px] text-white/30">{helperText}</p>}
         </div>
       </CardContent>
     </Card>

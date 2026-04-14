@@ -1,12 +1,15 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
   name: string;
   email: string;
    avatarUrl: string | null;
+  targetRole: string | null;
+  targetIndustry: string | null;
 }
 
 interface UserContextType {
@@ -14,7 +17,13 @@ interface UserContextType {
   loading: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (data: UpdateUserData) => Promise<void>;
 }
+
+type UpdateUserData = {
+  targetRole?: string;
+  targetIndustry?: string;
+};
 
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -22,10 +31,11 @@ const UserContext = createContext<UserContextType | null>(null);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const route = useRouter();
 
 
   useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch("/api/auth/user-data", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data?.user ?? null))
       .catch(() => setUser(null))
@@ -52,14 +62,31 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         credentials: "include",
       });
+
+      route.push("/"); 
+
     } catch {
       // Keep local logout resilient even if the network request fails.
     }
     setUser(null);
   };
 
+const updateUser = async (data: UpdateUserData) => {
+  const res = await fetch("/api/auth/update-profile", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: user?.id, updateData: data }),
+  });
+
+  if (!res.ok) throw new Error("Update failed");
+
+  const result = await res.json();
+
+  setUser((prev) => (prev ? { ...prev, ...data } : prev));
+};
   return (
-    <UserContext.Provider value={{ user, loading, login, logout }}>
+    <UserContext.Provider value={{ user, loading, login, logout, updateUser }}>
       {children}
     </UserContext.Provider>
   );

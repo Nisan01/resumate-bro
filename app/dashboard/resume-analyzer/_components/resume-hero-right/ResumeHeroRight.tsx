@@ -21,8 +21,7 @@ interface UploadedFile {
 
 interface Props {
   onAnalysisUpdate: Dispatch<SetStateAction<Record<string, any>>>;
-  onDone?: () => void;
-}
+onDone?: (analysis?: Record<string, any>) => void;}
 
 const ALLOWED_EXTS: AcceptedExt[] = ["pdf", "jpg", "jpeg", "png"];
 const IMAGE_EXTS: AcceptedExt[] = ["jpg", "jpeg", "png"];
@@ -157,7 +156,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
     formData.append("targetRole", targetRole || "Software Engineer");
     formData.append("industry", industry || "Tech");
 
-    const res = await fetch("/api/parse/parse-resume", { method: "POST", body: formData });
+    const res = await fetch("/api/dashboard/resume-analyzer", { method: "POST", body: formData });
     const reader = res.body!.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
@@ -186,7 +185,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
     setStepIndex(SCAN_STEPS.length - 1);
     await new Promise(r => setTimeout(r, 600));
     setStage("done");
-    setTimeout(() => onDone?.(), 800);
+   setTimeout(() => onDone?.({...localAnalysisRef.current,filename:uploaded.file.name}), 800);
   };
 
   // ── DIALOG ────────────────────────────────────────────────────────────────

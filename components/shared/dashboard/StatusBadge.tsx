@@ -5,19 +5,23 @@ import { cn } from "@/lib/utils";
 type StatusTone = "success" | "info" | "warning" | "danger" | "neutral";
 
 const toneStyles: Record<StatusTone, string> = {
-  success: "border-emerald-800 bg-emerald-200 text-emerald-950",
-  info: "border-cyan-800 bg-cyan-200 text-cyan-950",
-  warning: "border-amber-800 bg-amber-200 text-amber-950",
-  danger: "border-rose-800 bg-rose-200 text-rose-950",
-  neutral: "border-slate-700 bg-slate-200 text-slate-900",
+  success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+  info:    "border-sky-500/30 bg-sky-500/10 text-sky-300",
+  warning: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+  danger:  "border-rose-500/30 bg-rose-500/10 text-rose-300",
+  neutral: "border-white/10 bg-white/5 text-white/50",
 };
 
-const semanticToneLabel: Record<StatusTone, string> = {
-  success: "success",
-  info: "informational",
-  warning: "warning",
-  danger: "error",
-  neutral: "neutral",
+const dotStyles: Record<StatusTone, string> = {
+  success: "bg-emerald-400",
+  info:    "bg-sky-400",
+  warning: "bg-amber-400",
+  danger:  "bg-rose-400",
+  neutral: "bg-white/30",
+};
+
+const semanticLabel: Record<StatusTone, string> = {
+  success: "success", info: "informational", warning: "warning", danger: "error", neutral: "neutral",
 };
 
 interface StatusBadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -25,16 +29,19 @@ interface StatusBadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 export function StatusBadge({ tone = "neutral", className, children, ...props }: StatusBadgeProps) {
-  const semanticLabel = semanticToneLabel[tone];
-
   return (
     <Badge
       variant="outline"
-      className={cn("inline-flex items-center gap-1 border px-2.5 py-1 text-xs font-semibold", toneStyles[tone], className)}
+      className={cn(
+        "inline-flex items-center gap-1.5 border rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+        toneStyles[tone],
+        className,
+      )}
       {...props}
-      aria-label={props["aria-label"] ?? `${semanticLabel} status`}
+      aria-label={props["aria-label"] ?? `${semanticLabel[tone]} status`}
     >
-      <span className="sr-only">{semanticLabel} status: </span>
+      <span className={cn("inline-block w-1.5 h-1.5 rounded-full shrink-0", dotStyles[tone])} aria-hidden />
+      <span className="sr-only">{semanticLabel[tone]} status: </span>
       {children}
     </Badge>
   );

@@ -5,7 +5,7 @@ export async function POST(request: Request) {
 
 try {
 
-const { analysis, userId, totalTokensUsed } = await request.json();
+const { analysis, userId, totalTokensUsed,filename } = await request.json();
 
 
 
@@ -14,7 +14,7 @@ if (!analysis || !userId) {
     }
 
 
-const result = await saveAiAnalysisResult(userId, analysis, totalTokensUsed);
+const result = await saveAiAnalysisResult(userId, analysis, totalTokensUsed,filename);
 
 if (!result) {
       return NextResponse.json({ error: "Failed to save analysis" }, { status: 500 });

@@ -16,14 +16,6 @@ import { relations } from "drizzle-orm";
 // ENUMS
 // ============================================================
 
-export const industryEnum = pgEnum("industry", [
-  "software_engineering",
-  "data_science",
-  "cybersecurity",
-  "cloud_devops",
-  "ai_ml",
-  "other",
-]);
 
 export const jobReadinessEnum = pgEnum("job_readiness", [
   "beginner",
@@ -40,6 +32,30 @@ export const projectStatusEnum = pgEnum("project_status", [
   "planning",
   "done",
 ]);
+
+
+export const skillSourceEnum = pgEnum("skill_source", [
+  "resume",
+  "manual",
+  "suggested",
+]);
+ 
+export const skillProficiencyEnum = pgEnum("skill_proficiency", [
+  "none",
+  "beginner",
+  "intermediate",
+  "advanced",
+  "expert",
+]);
+ 
+export const skillStatusEnum = pgEnum("skill_status", [
+  "learning",
+  "learned",
+  "interested",
+  "ignored",
+]);
+
+
 // ============================================================
 // 1. USERS
 // ============================================================
@@ -52,12 +68,13 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 
   targetRole: varchar("target_role", { length: 150 }).default("Software Engineer"),
-  targetIndustry: industryEnum("target_industry").default("software_engineering"),
-  experienceYears: integer("experience_years").default(0),
-  
-  // Gamification & Tracking
-  xpPoints: integer("xp_points").default(0),
-  currentStreak: integer("current_streak").default(0),
+targetIndustry: varchar("target_industry", { length: 150 })
+  .default("software_engineering"),  
+
+
+    totalSkillTokens: integer("total_skill_tokens").default(0),
+    totalResumeTokens: integer("total_resume_tokens").default(0),
+
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -141,12 +158,37 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+
+export const userSkills = pgTable("user_skills", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  skillName: varchar("skill_name", { length: 150 }).notNull(),
+  source: skillSourceEnum("source").notNull(),
+  proficiency: skillProficiencyEnum("proficiency").default("none"),
+  status: skillStatusEnum("status").default("interested"),
+  notes: text("notes"),
+  meta: jsonb("meta"), 
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+
 // ============================================================
 // 2. RELATIONS
 // ============================================================
 
 export const projectsRelations = relations(projects, ({ one }) => ({
   user: one(users, { fields: [projects.userId], references: [users.id] }),
+}));
+
+
+
+// ADD this new relation block:
+export const userSkillsRelations = relations(userSkills, ({ one }) => ({
+  user: one(users, { fields: [userSkills.userId], references: [users.id] }),
 }));
 
 // ============================================================
@@ -158,11 +200,10 @@ export type Project = typeof projects.$inferSelect;
 // ============================================================
 // RELATIONS
 // ============================================================
-
 export const usersRelations = relations(users, ({ many }) => ({
   resumes: many(resumes),
+  userSkills: many(userSkills), // ADD THIS
 }));
-
 export const resumesRelations = relations(resumes, ({ one, many }) => ({
   user: one(users, { fields: [resumes.userId], references: [users.id] }),
   analyses: many(resumeAnalyses),
@@ -172,6 +213,8 @@ export const resumeAnalysesRelations = relations(resumeAnalyses, ({ one }) => ({
   resume: one(resumes, { fields: [resumeAnalyses.resumeId], references: [resumes.id] }),
 }));
 
+
+
 // ============================================================
 // TYPE EXPORTS
 // ============================================================
@@ -179,3 +222,5 @@ export const resumeAnalysesRelations = relations(resumeAnalyses, ({ one }) => ({
 export type User = typeof users.$inferSelect;
 export type Resume = typeof resumes.$inferSelect;
 export type ResumeAnalysis = typeof resumeAnalyses.$inferSelect;
+export type UserSkill = typeof userSkills.$inferSelect;
+export type NewUserSkill = typeof userSkills.$inferInsert;

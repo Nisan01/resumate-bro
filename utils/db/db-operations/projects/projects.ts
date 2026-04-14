@@ -2,6 +2,8 @@ import { db } from "@/index";
 import { projects } from "../../schema/schema";
 import { v4 as uuidv4 } from "uuid";
 import { eq } from "drizzle-orm";
+import { count } from "drizzle-orm";
+
 
 export const createProject = async (projectData: {
   userId: string;
@@ -31,7 +33,6 @@ export const createProject = async (projectData: {
   return newProject;
 };
 
-// ✅ Get all projects for a user
 export const getProjectsByUser = async (userId: string) => {
   const userProjects = await db
     .select()
@@ -40,3 +41,14 @@ export const getProjectsByUser = async (userId: string) => {
 
   return userProjects;
 };
+
+
+export const getProjectsCountByUser = async (userId: string) => {
+  const result = await db
+    .select({ count: count() })
+    .from(projects)
+    .where(eq(projects.userId, userId));
+
+  return result[0]?.count ?? 0;
+};
+

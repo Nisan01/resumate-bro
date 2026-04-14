@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'stepfun/step-3.5-flash:free',
+        model: 'z-ai/glm-4.5-air:free',
         messages: [{ role: 'user', content: analyzeProjectPrompt(project, projectContext) }],
       }),
     });

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Medal } from "lucide-react";
+import { Medal, Save } from "lucide-react";
 import AnalysisResult from "./_components/analysis-result/AnalysisResult";
 import ResumeHeroLeft from "./_components/resume-hero-left/ResumeHeroLeft";
 import ResumeUploaderRight from "./_components/resume-hero-right/ResumeHeroRight";
 import { toast } from "react-toastify";
 import { useUser } from "@/context/UserContext";
+import { saveResumeTokens } from "@/utils/db/db-operations/user-tokens/SaveTokens";
 
 export default function Page() {
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -14,35 +15,74 @@ export default function Page() {
   const { user, loading } = useUser();
 
   const hasAnalysis = Object.keys(analysis).some(k => k !== "header");
+  
 
-const handleDone =async () => {
-  resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-try {
-    const response = await fetch("/api/resume/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        analysis: analysis,
-        userId: user?.id, 
-        totalTokensUsed: analysis.totalTokensUsed?.count ?? 0,
-      }),
-    });
+const handleDone = async (analysisFromChild?: Record<string, any>) => {
+    const currentAnalysis = analysisFromChild || analysis;
+    const filename = currentAnalysis.filename;
 
-    if (response.ok) {
-      toast.success("Analysis saved successfully!",{
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    try {
+      const response = await fetch("/api/resume/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          analysis: currentAnalysis,
+          userId: user?.id,
+          filename: filename,
+          totalTokensUsed: currentAnalysis.totalTokensUsed?.count ?? 0,
+        }),
+      });
+
+
+      if(!loading){
+        await fetch("/api/save-resume-tokens", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },    
+          body: JSON.stringify({ userId: user?.id ,
+              tokensUsed: currentAnalysis.totalTokensUsed?.count ?? 0
+          }),
+        });
+
+     
+      }
+
+     
+      if (response.ok) {
+        toast.success("Analysis saved successfully!", {
+          position: "bottom-right",
+        });
+
+        const skillsArray = currentAnalysis?.skills?.skills || [];
+        if (skillsArray.length > 0 && user?.id) {
+          const skillNames = skillsArray.map((s: any) => s.name);
+          try {
+            const syncRes = await fetch("/api/skills/from-resume", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                userId: user.id,
+                skills: skillNames
+              }),
+            });
+            const syncResult = await syncRes.json();
+            if (!syncRes.ok) {
+              console.error("❌ Sync failed:", syncResult);
+              toast.error("Failed to sync skills: " + (syncResult.error || "Unknown"));
+            } else {
+              console.log(`Saved ${syncResult.count} skills to tracker`);
+            }
+          } catch (err) {
+            console.error("❌ Sync error:", err);
+          }
+        }
+      }
+    } catch (err) {
+      toast.error("Failed to save to DB:", {
         position: "bottom-right",
       });
     }
-  } catch (err) {
-    toast.error("Failed to save to DB:", {
-      position: "bottom-right",
-    });
-  }
-
-
-
-};
-
+  };
   // Auto-scroll when first real section arrives
   useEffect(() => {
     if (hasAnalysis) {

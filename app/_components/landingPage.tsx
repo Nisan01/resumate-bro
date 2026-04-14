@@ -367,8 +367,7 @@ export default function Page() {
 
             {/* cta */}
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-<Link href="/sign-in" className="btn btn-ghost" style={{ padding: "9px 18px", borderRadius: 8, fontSize: "0.875rem", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Login</Link>
-              <Link href="/sign-up" className="btn btn-primary" style={{ padding: "9px 20px", borderRadius: 8, fontSize: "0.875rem", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Sign Up</Link>
+              <Link href="/sign-in" className="btn btn-primary" style={{ padding: "9px 20px", borderRadius: 8, fontSize: "0.875rem", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Sign In</Link>
               {/* hamburger */}
 
               {/* hamburger */}
@@ -416,7 +415,7 @@ export default function Page() {
               </p>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <a href="#" className="btn btn-primary" style={{ padding: "14px 32px", fontSize: "1rem", borderRadius: 10, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 7 }}>Get Started Free ↗</a>
+                <Link href="/sign-up" className="btn btn-primary" style={{ padding: "14px 32px", fontSize: "1rem", borderRadius: 10, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 7 }}>Get Started Free ↗</Link>
                 <a href="#how" className="btn btn-ghost" style={{ padding: "14px 32px", fontSize: "1rem", borderRadius: 10, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 7 }}>See How It Works</a>
               </div>
 
@@ -564,8 +563,7 @@ export default function Page() {
             </h2>
             <p style={{ color: S.muted, fontSize: "1rem", marginBottom: 36 }}>Join 50,000+ professionals who've used Resumate Bro to land roles at top companies.</p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <a href="#" className="btn btn-primary" style={{ padding: "14px 32px", fontSize: "1rem", borderRadius: 10, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 7 }}>Create Account ↗</a>
-              <a href="#" className="btn btn-ghost" style={{ padding: "14px 32px", fontSize: "1rem", borderRadius: 10, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 7 }}>View Demo</a>
+              <Link href="/sign-up" className="btn btn-primary" style={{ padding: "14px 32px", fontSize: "1rem", borderRadius: 10, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 7 }}>Create Account</Link>
             </div>
           </div>
         </div>

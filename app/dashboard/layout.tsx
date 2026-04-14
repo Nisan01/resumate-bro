@@ -2,6 +2,7 @@ import React from 'react'
 import DashBoardNav from './_components/DashboardNav/Navbar'
 import { Inter } from "next/font/google";
 import './_components/css/Dashboard.css'
+import TargetProfileDialog from './_components/ProfileTargetDialogBox/ProfileTargetDialogBox';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -57,7 +58,8 @@ function layout({ children }: { children: React.ReactNode }) {
             <DashBoardNav />
           </div>
 
-          {/* Main content */}
+<TargetProfileDialog  />
+
           <div className="flex-1 min-w-0 h-full overflow-y-auto">
             {children}
           </div>

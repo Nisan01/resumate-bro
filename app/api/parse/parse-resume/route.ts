@@ -1,14 +1,10 @@
-
 import { NextRequest } from 'next/server';
 import { extractText as unpdfExtract } from 'unpdf';
 
-import { analyzeContactInfoPrompt } from '@/lib/aiprompts/resume-analyzer/ContactInfoPrompt';
-import { analyzeSummaryPrompt } from '@/lib/aiprompts/resume-analyzer/ProfessionalSummary';
-import { analyzeWorkExperiencePrompt } from '@/lib/aiprompts/resume-analyzer/WorkExperiencePrompt';
-import { analyzeSkillsPrompt } from '@/lib/aiprompts/resume-analyzer/Skills';
-import { generateCertificationsProjectsPrompt } from '@/lib/aiprompts/resume-analyzer/CertificationProjectPrompt';
-import { analyzeATSPrompt } from '@/lib/aiprompts/resume-analyzer/ATSEvaluation';
-import { analyzeRecruiterEyePrompt } from '@/lib/aiprompts/resume-analyzer/RecruitersEye';
+import {
+  analyzeProfilePrompt,
+  analyzeDeepPrompt,
+} from '@/lib/aiprompts/resume-analyzer/FullAnalysis';
 
 import atsPractices from '@/lib/aiprompts/resume-analyzer/AtsPractices.json';
 
@@ -28,74 +24,34 @@ function emit(
   );
 }
 
-async function askAI(
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
   section: string,
-  prompt: string,
-  controller: ReadableStreamDefaultController,
   retries = 3
-): Promise<number> {
+): Promise<Response | null> {
   for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'stepfun/step-3.5-flash:free',
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      });
+    const res = await fetch(url, options);
 
-      if (res.status === 429) {
-        const wait = (attempt + 1) * 8000; // 8s, 16s, 24s
-        console.warn(`[${section}] 429 rate limit — retrying in ${wait}ms...`);
-        await new Promise(r => setTimeout(r, wait));
-        continue;
-      }
-
-      if (!res.ok) {
-        console.error(`[${section}] HTTP error:`, res.status);
-        emit(controller, section, { error: 'API error' });
-        return 0;
-      }
-
-      const data = await res.json();
-      const raw = data.choices?.[0]?.message?.content;
-      const tokens: number = data.usage?.total_tokens ?? 0;
-
-      if (!raw) { emit(controller, section, {}); return tokens; }
-
-      try {
-        const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
-        emit(controller, section, parsed);
-      } catch {
-        emit(controller, section, {});
-      }
-
-      return tokens;
-
-    } catch (err) {
-      console.error(`[${section}] fetch failed:`, err);
-      emit(controller, section, { error: 'Network failure' });
-      return 0;
+    if (res.status === 429) {
+      const wait = Math.min(1000 * Math.pow(2, attempt + 1) + Math.random() * 1000, 30000);
+      console.warn(`[${section}] 429 rate limit — retrying in ${Math.round(wait)}ms...`);
+      await new Promise(r => setTimeout(r, wait));
+      continue;
     }
+
+    return res;
   }
 
-  // All retries exhausted
-  console.error(`[${section}] All retries failed`);
-  emit(controller, section, { error: 'Rate limit exceeded' });
-  return 0;
+  console.error(`[${section}] All retries exhausted`);
+  return null;
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    const targetRole =
-      (formData.get('targetRole') as string) || 'Software Engineer';
+    const targetRole = (formData.get('targetRole') as string) || 'Software Engineer';
 
     if (!file) {
       return new Response(
@@ -114,116 +70,133 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // =========================
-          // 1. HEADER FETCH (SAFE)
-          // =========================
+          // ── CALL 1: Profile (header, contactInfo, summary, skills) ──────────
+          console.log('🚀 Call 1: Profile analysis...');
 
-          let header = {
-            name: '',
-            currentRole: '',
-            targetRole,
-          };
+          const res1 = await fetchWithRetry(
+            'https://openrouter.ai/api/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'google/gemma-4-31b-it:free',
+                messages: [
+                  {
+                    role: 'user',
+                    content: analyzeProfilePrompt(text, targetRole),
+                  },
+                ],
+              }),
+            },
+            'Call1-Profile'
+          );
 
-          let headerTokens = 0; // ── track header tokens
+          let tokens1 = 0;
 
-          try {
-            console.log('🚀 Fetching header info...');
+          if (res1 && res1.ok) {
+            const d1 = await res1.json();
+            tokens1 = d1.usage?.total_tokens ?? 0;
 
-            const headerRes = await fetch(
-              'https://openrouter.ai/api/v1/chat/completions',
-              {
-                method: 'POST',
-                headers: {
-                  Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  model: 'stepfun/step-3.5-flash:free',
-                  messages: [
-                    {
-                      role: 'user',
-                      content: `Extract from this resume:
-- "name": candidate full name
-- "currentRole": current job title (empty string if student or none)
-- "targetRole": role they are targeting based on skills and projects
+            try {
+              const parsed1 = JSON.parse(
+                d1.choices[0].message.content.replace(/```json|```/g, '').trim()
+              );
 
-JSON only. No explanation.
+              emit(controller, 'header', {
+                ...(parsed1.header ?? {}),
+                targetRole,
+              });
+              emit(controller, 'contactInfo', parsed1.contactInfo ?? {});
+              emit(controller, 'summary', parsed1.summary ?? {});
+              emit(controller, 'skills', parsed1.skills ?? {});
 
-Resume:
-${text.slice(0, 2000)}`,
-                    },
-                  ],
-                }),
-              }
-            );
-
-            if (!headerRes.ok) {
-              throw new Error(`Header API failed: ${headerRes.status}`);
+              console.log(`🪙 Call 1 tokens: ${tokens1}`);
+            } catch (parseErr) {
+              console.error('❌ Call 1 JSON parse error:', parseErr);
+              emit(controller, 'header', { name: '', currentRole: '', targetRole });
+              emit(controller, 'contactInfo', {});
+              emit(controller, 'summary', {});
+              emit(controller, 'skills', {});
             }
-
-            const headerData = await headerRes.json();
-            const headerRaw =
-              headerData.choices?.[0]?.message?.content ?? '{}';
-
-            headerTokens = headerData.usage?.total_tokens ?? 0; // ── grab header tokens
-
-            header = JSON.parse(
-              headerRaw.replace(/```json|```/g, '').trim()
-            );
-
-          } catch (err) {
-            console.error('❌ Header fetch failed:', err);
+          } else {
+            console.error('❌ Call 1 failed or null response');
+            emit(controller, 'header', { name: '', currentRole: '', targetRole });
+            emit(controller, 'contactInfo', {});
+            emit(controller, 'summary', {});
+            emit(controller, 'skills', {});
           }
 
-          emit(controller, 'header', { ...header, targetRole });
+          // ── breathing room between calls ─────────────────────────────────────
+          await new Promise(r => setTimeout(r, 2000));
 
-          // =========================
-          // 2. PARALLEL SECTIONS (SAFE)
-          // =========================
+          // ── CALL 2: Deep analysis (workExperience, certifications, atsEvaluation, recruiterEye) ──
+          console.log('🚀 Call 2: Deep analysis...');
 
-          console.log('🚀 Starting all analysis sections...');
-
-          const results = await Promise.allSettled([
-            askAI('contactInfo', analyzeContactInfoPrompt(text), controller),
-            askAI('summary', analyzeSummaryPrompt(text, targetRole), controller),
-            askAI(
-              'workExperience',
-              analyzeWorkExperiencePrompt(text, targetRole),
-              controller
-            ),
-            askAI('skills', analyzeSkillsPrompt(text, targetRole), controller),
-            askAI(
-              'certifications',
-              generateCertificationsProjectsPrompt(text),
-              controller
-            ),
-            askAI(
-              'recruiterEye',
-              analyzeRecruiterEyePrompt(text, targetRole),
-              controller
-            ),
-            askAI(
-              'atsEvaluation',
-              analyzeATSPrompt(text, atsRulesJSON),
-              controller
-            ),
-          ]);
-
-          // ── sum all tokens and emit as a stream section ───────────────────
-          const sectionTokens = results.reduce(
-            (sum, r) => sum + (r.status === 'fulfilled' ? r.value : 0),
-            0
+          const res2 = await fetchWithRetry(
+            'https://openrouter.ai/api/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'stepfun/step-3.5-flash:free',
+                messages: [
+                  {
+                    role: 'user',
+                    content: analyzeDeepPrompt(text, targetRole, atsRulesJSON),
+                  },
+                ],
+              }),
+            },
+            'Call2-Deep'
           );
-          const totalTokensUsed = headerTokens + sectionTokens;
 
+          let tokens2 = 0;
+
+          if (res2 && res2.ok) {
+            const d2 = await res2.json();
+            tokens2 = d2.usage?.total_tokens ?? 0;
+
+            try {
+              const parsed2 = JSON.parse(
+                d2.choices[0].message.content.replace(/```json|```/g, '').trim()
+              );
+
+              emit(controller, 'workExperience', parsed2.workExperience ?? {});
+              emit(controller, 'certifications', parsed2.certifications ?? {});
+              emit(controller, 'atsEvaluation', parsed2.atsEvaluation ?? {});
+              emit(controller, 'recruiterEye', parsed2.recruiterEye ?? {});
+
+              console.log(`🪙 Call 2 tokens: ${tokens2}`);
+            } catch (parseErr) {
+              console.error('❌ Call 2 JSON parse error:', parseErr);
+              emit(controller, 'workExperience', {});
+              emit(controller, 'certifications', {});
+              emit(controller, 'atsEvaluation', {});
+              emit(controller, 'recruiterEye', {});
+            }
+          } else {
+            console.error('❌ Call 2 failed or null response');
+            emit(controller, 'workExperience', {});
+            emit(controller, 'certifications', {});
+            emit(controller, 'atsEvaluation', {});
+            emit(controller, 'recruiterEye', {});
+          }
+
+          // ── total tokens ─────────────────────────────────────────────────────
+          const totalTokensUsed = tokens1 + tokens2;
           console.log(`🪙 Total tokens used: ${totalTokensUsed}`);
           emit(controller, 'totalTokensUsed', { count: totalTokensUsed });
-          // ─────────────────────────────────────────────────────────────────
 
         } catch (err) {
           console.error('💥 Stream fatal error:', err);
           emit(controller, 'error', {
-            message: 'Something went wrong while processing resume',
+            message: 'Something went wrong while processing your resume',
           });
         } finally {
           console.log('✅ Closing stream');
@@ -240,7 +213,6 @@ ${text.slice(0, 2000)}`,
 
   } catch (err) {
     console.error('❌ POST handler failed:', err);
-
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500 }

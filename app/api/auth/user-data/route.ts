@@ -11,7 +11,7 @@ export async function GET() {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { email: string };
     
-    const user = await getUserByEmail(decoded.email); // 👈 fetch from DB
+    const user = await getUserByEmail(decoded.email); 
     if (!user) return Response.json({ user: null }, { status: 401 });
 
     return Response.json({
@@ -19,7 +19,9 @@ export async function GET() {
         id: user.id,
         name: user.name,
         email: user.email,
-        avatarUrl: user.avatarUrl ?? null, // 👈 now you have it
+        avatarUrl: user.avatarUrl ?? null,
+        targetRole: user.targetRole ?? null,
+        targetIndustry:user.targetIndustry ?? null, 
       },
     });
   } catch {

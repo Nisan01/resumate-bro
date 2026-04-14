@@ -526,7 +526,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="min-h-screen text-[#f0eeff] font-sans">
-      <div className="relative z-10 md:max-w-6xl mx-auto px-9 pt-10 pb-20">
+      <div className="relative z-10 md:max-w-7xl mx-auto px-9 pt-10 pb-20">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3 animate-[fadeUp_0.5s_ease_both]">

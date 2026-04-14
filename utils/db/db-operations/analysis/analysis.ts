@@ -15,7 +15,7 @@ function computeOverallScore(aiData: any): number {
   return Math.round((raw.reduce((a, b) => a + b, 0) / raw.length) * 10);
 }
 
-export const saveAiAnalysisResult = async (userId: string, aiData: any, totalTokensUsed: number) => {
+export const saveAiAnalysisResult = async (userId: string, aiData: any, totalTokensUsed: number,filename: string) => {
   console.log("💾 Saving with tokens:", totalTokensUsed);
 
   const [newResume] = await db.insert(resumes).values({
@@ -24,7 +24,7 @@ export const saveAiAnalysisResult = async (userId: string, aiData: any, totalTok
       aiData.contactInfo?.contact_fields?.find(
         (f: any) => f.label === "Full Name"
       )?.value || "Unknown",
-    fileName: "Analyzed_Resume",
+    fileName: filename,
     fileUrl: "n/a",
     extractedSkills: aiData.skills?.skills ? aiData.skills : {},
     extractedProjects: Array.isArray(aiData.certifications?.projects)

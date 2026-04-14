@@ -11,10 +11,8 @@ import { useUser } from '@/context/UserContext';
 const navItems = [
   {label:"Dashboard",         path: "",         icon: LayoutDashboard },
     { label: "Resume Analyzer",    path: "resume-analyzer",    icon: Eye },
-  { label: "AI Career Coach",    path: "ai-career-coach",    icon: BotMessageSquare },
   { label: "Practice Questions", path: "practice-questions", icon: UserPlus },
   { label: "Projects",           path: "projects",           icon: UserCheck },
-  { label: "Reports",            path: "reports",            icon: FileText },
   
   { label: "Roadmap",            path: "roadmap",            icon: Calendar },
   {
@@ -70,7 +68,12 @@ const isActive = (path: string) => {
   `}
 >
   <button
-    onClick={() => setExpanded(!expanded)}
+   onClick={() => {
+  // Only allow expansion if the screen is large (lg breakpoint is 1024px)
+  if (window.innerWidth >= 640) {
+    setExpanded(!expanded);
+  }
+}}
     className="group shrink-0 flex items-center justify-center transition-transform active:scale-95"
     aria-label="Toggle sidebar"
   >
@@ -164,8 +167,7 @@ const isActive = (path: string) => {
 </ul>
 
 
-{/* ── User Footer ── */}
-{/* ── User Footer ── */}
+
 <div className="p-2 border-t border-white/10">
   <div
     className={`

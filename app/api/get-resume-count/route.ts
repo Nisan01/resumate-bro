@@ -1,5 +1,5 @@
 import { get } from "http";
-import { getResumeStatsForUser } from "@/utils/db/db-operations/resume-tokens-total/totalcount";
+import { getResumeCount } from "@/utils/db/db-operations/resume-tokens-total/totalcount";
 import { NextResponse } from "next/server";
 
 
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
   try {
 
-    const result=await getResumeStatsForUser(userId);
+    const result=await getResumeCount(userId);
 return NextResponse.json(result);  } catch (error) {
     
     console.error("Error fetching resume stats:", error);
