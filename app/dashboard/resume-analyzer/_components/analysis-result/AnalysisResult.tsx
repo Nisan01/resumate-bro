@@ -12,18 +12,18 @@ import ProgressBar from "./_components/ProgressBar";
 import CertCard from "./_components/CertCard";
 import { useEffect, useRef, useState } from "react";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────────────────────────────────────────
+
+
+
 type Status = "good" | "ok" | "missing";
 
 interface Props {
   analysis: Record<string, any>;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COLORS
-// ─────────────────────────────────────────────────────────────────────────────
+
+
+
 const C = {
   bg:      "#080b12",
   text:    "#f0eeff",
@@ -208,9 +208,9 @@ section[id] { scroll-margin-top: 100px; }
 .js-reveal.visible { opacity: 1; transform: translateY(0); }
 `;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SCORE CALCULATION HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
+
+
+
 function computeOverallScore(analysis: Record<string, any>): number | null {
   const raw = [
     analysis?.contactInfo?.overall_score,
@@ -238,9 +238,9 @@ function computeAtsPostFix(atsPct: number): number {
   return Math.min(95, atsPct + Math.round((95 - atsPct) * 0.60));
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// VERDICT TIER CONFIG
-// ─────────────────────────────────────────────────────────────────────────────
+
+
+
 const VERDICT_TIERS = [
   { max: 20,  color: "#ef4444", border: "rgba(239,68,68,0.25)",    bg: "rgba(239,68,68,0.07)",    label: "Critical",   sub: "Major overhaul needed",          path: "M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01" },
   { max: 40,  color: "#f97316", border: "rgba(249,115,22,0.25)",   bg: "rgba(249,115,22,0.07)",   label: "Needs Work", sub: "Significant fixes required",      path: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" },
@@ -254,9 +254,9 @@ function getTier(score: number) {
   return VERDICT_TIERS.find(t => score < t.max) ?? VERDICT_TIERS[5];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
+
+
+
 const statusCfg = {
   good:    { icon: CheckCircle2, color: "#22c55e", bg: "rgba(34,197,94,0.08)",  border: "rgba(34,197,94,0.2)",  label: "Good"    },
   ok:      { icon: AlertCircle,  color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)", label: "OK"      },
@@ -415,9 +415,9 @@ const contactIconMap: Record<string, any> = {
   "GitHub/Portfolio": Cat, "Location": MapPin,
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STATUS BADGE — Analyzing / Complete
-// ─────────────────────────────────────────────────────────────────────────────
+
+
+
 const REQUIRED_SECTIONS = [
   "contactInfo", "summary", "workExperience",
   "skills", "certifications", "recruiterEye", "atsEvaluation",
@@ -454,7 +454,7 @@ function StatusBadge({ analysis }: { analysis: Record<string, any> }) {
         color: C.accent1,
       }}
     >
-      {/* Spinner ring */}
+      {}
       <svg
         className="anim-spin"
         width="12" height="12" viewBox="0 0 12 12"
@@ -472,9 +472,6 @@ function StatusBadge({ analysis }: { analysis: Record<string, any> }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NAV
-// ─────────────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { id: "sec-overview",   label: "Overview"      },
   { id: "sec-actions",    label: "Actions"       },
@@ -488,10 +485,12 @@ const NAV_ITEMS = [
   { id: "sec-verdict",    label: "Verdict"       },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
 export default function AnalysisResult({ analysis }: Props) {
+
+
+
+
+
   const [activeNav, setActiveNav] = useState("sec-overview");
   const navRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -551,13 +550,34 @@ export default function AnalysisResult({ analysis }: Props) {
     return () => io.disconnect();
   }, [analysis]);
 
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.add("visible");
-    el.querySelectorAll(".js-reveal").forEach(child => child.classList.add("visible"));
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
+const scrollToSection = (id: string) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.classList.add("visible");
+  el.querySelectorAll(".js-reveal").forEach(child => child.classList.add("visible"));
+
+  const scroller = document.getElementById("main-scroll");
+  if (!scroller) return;
+
+  const targetOffset = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - 100;
+  const startOffset = scroller.scrollTop;
+  const distance = targetOffset - startOffset;
+  const duration = 600;
+  let startTime: number | null = null;
+
+  const easeInOut = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+  const step = (timestamp: number) => {
+    if (!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    scroller.scrollTop = startOffset + distance * easeInOut(progress);
+    if (progress < 1) requestAnimationFrame(step);
   };
+
+  requestAnimationFrame(step);
+};
 
   const contactFields: any[] = analysis?.contactInfo?.contact_fields ?? [];
   const summaryData = analysis?.summary;
@@ -584,10 +604,10 @@ export default function AnalysisResult({ analysis }: Props) {
 
       <div ref={sentinelRef} style={{ height: 1, marginBottom: -1, pointerEvents: "none" }} />
 
-      {/* ── Nav ── */}
+      {}
       <div
         ref={navRef}
-        className="sticky top-3 p-3 rounded-full z-50 mb-8"
+        className="sticky top-3 p-3 rounded-full z-50 mb-9"
         style={{
           background: scrolled ? "rgba(0,0,75,0.18)" : "rgba(8,11,18,0)",
           backdropFilter: scrolled ? "blur(24px) saturate(200%)" : "blur(0px)",
@@ -596,18 +616,18 @@ export default function AnalysisResult({ analysis }: Props) {
           transition: "background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease",
         }}
       >
-        <div className="flex items-center justify-center gap-1 px-4 pb-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="flex items-center justify-center gap-1 px-4  overflow-x-auto" style={{ scrollbarWidth: "none" }}>
           {NAV_ITEMS.map(({ id, label }) => (
-            <button key={id} onClick={() => scrollTo(id)} className={`nav-link ${activeNav === id ? "active" : ""}`}>
+            <button key={id} onClick={() => scrollToSection(id)} className={`nav-link ${activeNav === id ? "active" : ""}`}>
               {label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          01 — OVERVIEW HERO
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-overview" className="js-reveal mb-[52px]">
         <div className="relative overflow-hidden rounded-[20px] px-10 py-9 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-10 items-start anim-glow-purple"
           style={{ background: C.heroBg, border: `1px solid ${C.heroBdr}` }}>
@@ -616,7 +636,7 @@ export default function AnalysisResult({ analysis }: Props) {
             radial-gradient(ellipse 45% 40% at 100% 100%, rgba(126,232,250,0.06), transparent 60%)` }} />
           <div className="relative z-10">
 
-            {/* ── Dynamic status badge ── */}
+            {}
             <StatusBadge analysis={analysis} />
 
             <div className="text-[44px] sm:text-[32px] font-bold leading-[1.08] tracking-[-0.03em] mb-2">
@@ -656,9 +676,9 @@ export default function AnalysisResult({ analysis }: Props) {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          02 — PRIORITY ACTIONS
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-actions" className="js-reveal mb-[52px]">
         <SectionLabel>02 — Priority Actions</SectionLabel>
         {!analysis?.atsEvaluation?.suggestions && !analysis?.contactInfo?.suggestions ? (
@@ -692,9 +712,9 @@ export default function AnalysisResult({ analysis }: Props) {
         })()}
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          03 — CONTACT INFORMATION
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-contact" className="js-reveal mb-[52px]">
         <SectionLabel>03 — Contact Information</SectionLabel>
         {!analysis?.contactInfo ? (
@@ -734,9 +754,9 @@ export default function AnalysisResult({ analysis }: Props) {
         )}
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          04 — PROFESSIONAL SUMMARY
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-summary" className="js-reveal mb-[52px]">
         <SectionLabel>04 — Professional Summary</SectionLabel>
         {!analysis?.summary ? (
@@ -787,9 +807,9 @@ export default function AnalysisResult({ analysis }: Props) {
         )}
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          05 — WORK EXPERIENCE
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-experience" className="js-reveal mb-[52px]">
         <SectionLabel>05 — Work Experience</SectionLabel>
         {!analysis?.workExperience ? (
@@ -860,9 +880,9 @@ export default function AnalysisResult({ analysis }: Props) {
         )}
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          06 — SKILLS ANALYSIS
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-skills" className="js-reveal mb-[52px]">
         <SectionLabel>06 — Skills Analysis</SectionLabel>
         {!analysis?.skills ? (
@@ -940,9 +960,9 @@ export default function AnalysisResult({ analysis }: Props) {
         )}
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          07 — RECRUITER'S EYE
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-recruiter" className="js-reveal mb-[52px]">
         <SectionLabel>07 — Recruiter's Eye</SectionLabel>
         {!analysis?.recruiterEye ? (
@@ -1056,9 +1076,9 @@ export default function AnalysisResult({ analysis }: Props) {
         )}
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          08 — ATS AUDIT
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-ats" className="js-reveal mb-[52px]">
         <SectionLabel>08 — ATS Audit</SectionLabel>
         {!analysis?.atsEvaluation ? (
@@ -1121,9 +1141,9 @@ export default function AnalysisResult({ analysis }: Props) {
         )}
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          09 — CERTIFICATIONS & PROJECTS
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-certs" className="js-reveal mb-[52px]">
         <SectionLabel>09 — Certifications & Projects</SectionLabel>
         {!analysis?.certifications ? (
@@ -1166,9 +1186,9 @@ export default function AnalysisResult({ analysis }: Props) {
         )}
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          10 — FINAL VERDICT
-      ══════════════════════════════════════════════════════════════════ */}
+      {
+
+}
       <section id="sec-verdict" className="js-reveal mb-[52px]">
         <SectionLabel>10 — Final Verdict</SectionLabel>
         <div

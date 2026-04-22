@@ -51,16 +51,16 @@ function layout({ children }: { children: React.ReactNode }) {
           />
         </div>
 
-        {/* Layout */}
+        {}
         <div className="relative z-10 flex h-full">
-          {/* Sidebar */}
+          {}
           <div className="dashboard-sidebar">
             <DashBoardNav />
           </div>
 
 <TargetProfileDialog  />
 
-          <div className="flex-1 min-w-0 h-full overflow-y-auto">
+          <div id="main-scroll" className="flex-1 min-w-0 h-full overflow-y-auto">
             {children}
           </div>
         </div>

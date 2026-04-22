@@ -41,10 +41,10 @@ import { saveSkillsTokens } from "@/utils/db/db-operations/user-tokens/SaveToken
       const rawText = aiData.choices?.[0]?.message?.content ?? "";
       tokensUsed = aiData.usage?.total_tokens ?? 0;
 
-      // Parse JSON safely
+      
       const cleanedJson = JSON.parse(rawText.replace(/```json|```/g, "").trim());
 
-      // Save suggested skills to DB (clears old suggestions first)
+      
       const saved = await saveSuggestedSkills(userId, cleanedJson.suggested_skills ?? [], industry);
       console.log("Saving tokens....");
 

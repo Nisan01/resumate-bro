@@ -83,14 +83,14 @@ const handleDone = async (analysisFromChild?: Record<string, any>) => {
       });
     }
   };
-  // Auto-scroll when first real section arrives
+  
   useEffect(() => {
     if (hasAnalysis) {
       resultsRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [hasAnalysis]);
 
-  // Debug log
+  
   useEffect(() => {
     if (Object.keys(analysis).length > 0) {
       console.log("📊 Analysis update:", analysis);
@@ -101,7 +101,7 @@ const handleDone = async (analysisFromChild?: Record<string, any>) => {
   return (
     <div className="min-h-screen w-full mb-3 flex flex-col items-center justify-center px-6  lg:py-2 md:py-8">
 
-      {/* ── Hero / Upload ── */}
+      {}
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
         <ResumeHeroLeft />
         <div className="w-full flex justify-center lg:justify-end">
@@ -111,7 +111,7 @@ const handleDone = async (analysisFromChild?: Record<string, any>) => {
 
     
 
-      {/* ── Analysis Result ── */}
+      {}
       {hasAnalysis && (
         <div
           ref={resultsRef}

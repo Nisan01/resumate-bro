@@ -11,7 +11,7 @@ import { useUser } from "@/context/UserContext";
 import { ProjectSkeleton } from "./_components/skeleton/Skeleton";
 import { AnalysisSkeleton } from "./_components/skeletonpg/SkeletonParagraph";
 
-// ── Types ──
+
 interface Project {
   id: number;
   emoji: string;
@@ -35,7 +35,7 @@ interface AnalysisResult {
   overall_feedback: string;
 }
 
-// ── DB → UI mapping helpers ──
+
 const COLORS = ["purple", "teal", "blue", "pink", "orange", "green"];
 const GRADS  = [
   "from-[#c4b0ff] to-[#ff9de2]",
@@ -88,11 +88,11 @@ const statusStyle: Record<string, string> = {
   done:     "bg-[#6effc0]/22 text-[#6effc0] border border-[#6effc0]/40",
 };
 
-// ── Scanning Heading (shown while analyzing) ──
+
 function ScanningHeading() {
   return (
     <div className="mt-10 mb-2 w-full flex flex-col items-center gap-4 py-10">
-      {/* Pulsing rings */}
+      {}
       <div className="relative flex items-center justify-center w-20 h-20">
         <div className="absolute w-20 h-20 rounded-full border border-[#c4b0ff]/20 animate-ping" style={{ animationDuration: "2s" }} />
         <div className="absolute w-14 h-14 rounded-full border border-[#7ee8fa]/30 animate-ping" style={{ animationDuration: "2s", animationDelay: "0.4s" }} />
@@ -111,7 +111,7 @@ function ScanningHeading() {
   );
 }
 
-// ── Glowing section icons ──
+
 const sectionIcons = {
   overview:  { icon: Globe,       color: "#7ee8fa", bg: "bg-[#7ee8fa]/10",  border: "border-[#7ee8fa]/20",  glow: "shadow-[0_0_18px_rgba(126,232,250,0.25)]" },
   standouts: { icon: Star,        color: "#ffe082", bg: "bg-[#ffe082]/10",  border: "border-[#ffe082]/20",  glow: "shadow-[0_0_18px_rgba(255,224,130,0.25)]" },
@@ -119,7 +119,7 @@ const sectionIcons = {
   feedback:  { icon: TrendingUp,  color: "#6effc0", bg: "bg-[#6effc0]/10",  border: "border-[#6effc0]/20",  glow: "shadow-[0_0_18px_rgba(110,255,192,0.25)]" },
 };
 
-// ── Analysis Result Card ──
+
 function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [result]);
@@ -127,7 +127,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
   return (
     <div ref={ref} className="mt-10">
 
-      {/* ── Report heading ── */}
+      {}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#c4b0ff]/25 to-[#7ee8fa]/15 border border-[#c4b0ff]/30 flex items-center justify-center shadow-[0_0_20px_rgba(196,176,255,0.3)]">
@@ -151,7 +151,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
         </div>
       </div>
 
-      {/* ── Project identity bar ── */}
+      {}
       <div className="flex items-center gap-4 mb-6 px-5 py-4 rounded-2xl bg-gradient-to-r from-[#c4b0ff]/6 via-[#7ee8fa]/4 to-[#ff9de2]/6 border border-[#c4b0ff]/14">
         <span className="text-3xl">{result.projectEmoji}</span>
         <div className="flex-1">
@@ -176,7 +176,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
 
       <div className="flex flex-col gap-5">
 
-        {/* ── Overview ── */}
+        {}
         <div className="rounded-2xl border border-[#7ee8fa]/14 bg-white/[0.025] overflow-hidden">
           <div className="flex items-center gap-3 px-6 pt-5 pb-3">
             <div className={`w-8 h-8 rounded-xl ${sectionIcons.overview.bg} border ${sectionIcons.overview.border} ${sectionIcons.overview.glow} flex items-center justify-center`}>
@@ -189,7 +189,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
           </div>
         </div>
 
-        {/* ── Standouts ── */}
+        {}
         <div className="rounded-2xl border border-[#ffe082]/14 bg-white/[0.025] overflow-hidden">
           <div className="flex items-center justify-between px-6 pt-5 pb-3">
             <div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
           </div>
         </div>
 
-        {/* ── Follow Up ── */}
+        {}
         <div className="rounded-2xl border border-[#ff9de2]/14 bg-white/[0.025] overflow-hidden">
           <div className="flex items-center justify-between px-6 pt-5 pb-3">
             <div className="flex items-center gap-3">
@@ -239,7 +239,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
           </div>
         </div>
 
-        {/* ── Overall Feedback ── */}
+        {}
         <div className="rounded-2xl border border-[#6effc0]/14 bg-white/[0.025] overflow-hidden">
           <div className="flex items-center gap-3 px-6 pt-5 pb-3">
             <div className={`w-8 h-8 rounded-xl ${sectionIcons.feedback.bg} border ${sectionIcons.feedback.border} ${sectionIcons.feedback.glow} flex items-center justify-center`}>
@@ -247,7 +247,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
             </div>
             <p className="text-[11px] font-bold uppercase tracking-[1.2px] text-[#6effc0]/70">Overall Feedback</p>
           </div>
-          {/* Accent line */}
+          {}
           <div className="mx-6 h-px bg-gradient-to-r from-[#6effc0]/30 via-[#7ee8fa]/20 to-transparent mb-4" />
           <div className="px-6 pb-6">
             <p className="text-[13.5px] text-[#dcd7ff]/70 leading-[1.85] font-light">{result.overall_feedback}</p>
@@ -256,7 +256,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
 
       </div>
 
-      {/* ── Footer badge ── */}
+      {}
       <div className="flex items-center justify-center gap-2 mt-6 py-3">
         <Sparkles size={10} className="text-[#c4b0ff]/40" />
         <span className="text-[10px] text-[#dcd7ff]/25 tracking-wide">Generated by Claude AI · Resumate Bro</span>
@@ -266,7 +266,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
   );
 }
 
-// ── Analyze Dialog ──
+
 function AnalyzeDialog({ project, onClose, onSubmit }: {
   project: Project; onClose: () => void; onSubmit: (context: string) => void;
 }) {
@@ -305,7 +305,7 @@ function AnalyzeDialog({ project, onClose, onSubmit }: {
   );
 }
 
-// ── Project Modal ──
+
 function ProjectModal({ project, onClose }: { project: Project; onClose: () => void }) {
   const [progWidth, setProgWidth] = useState(0);
   useEffect(() => { const t = setTimeout(() => setProgWidth(project.pct), 60); return () => clearTimeout(t); }, [project]);
@@ -349,7 +349,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
   );
 }
 
-// ── Add Project Modal ──
+
 function AddProjectModal({ onClose, onAdd }: { onClose: () => void; onAdd: (p: Project) => void }) {
   const [name, setName] = useState(""); const [emoji, setEmoji] = useState("");
   const [status, setStatus] = useState<Project["status"]>("active");
@@ -422,7 +422,7 @@ function AddProjectModal({ onClose, onAdd }: { onClose: () => void; onAdd: (p: P
   );
 }
 
-// ── Main Page ──
+
 export default function ProjectsPage() {
   const [projects, setProjects]               = useState<Project[]>([]);
   const [filter, setFilter]                   = useState("all");
@@ -435,13 +435,13 @@ export default function ProjectsPage() {
   const [analysisError, setAnalysisError]     = useState<string | null>(null);
   const [ready, setReady]                     = useState(false);
 
-  // Ref to scroll into view when analysis starts
+  
   const analysisSectionRef = useRef<HTMLDivElement>(null);
 
   const { user } = useUser();
   const filtered = filter === "all" ? projects : projects.filter((p) => p.status === filter);
 
-  // ── Fetch projects ──
+  
   useEffect(() => {
     if (!user) return;
     const fetchProjects = async () => {
@@ -459,7 +459,7 @@ export default function ProjectsPage() {
     fetchProjects();
   }, [user]);
 
-  // ── Add project ──
+  
   const handleAdd = async (optimistic: Project) => {
     if (!user) { toast.error("You must be logged in to add a project"); return; }
     setProjects((prev) => [optimistic, ...prev]);
@@ -479,7 +479,7 @@ export default function ProjectsPage() {
     }
   };
 
-  // ── Analyze — scroll immediately then run the API ──
+  
   const handleAnalyzeSubmit = async (context: string) => {
     if (!analyzeProject) return;
     const project = analyzeProject;
@@ -488,7 +488,7 @@ export default function ProjectsPage() {
     setAnalysisResult(null);
     setAnalysisError(null);
 
-    // Scroll to the analysis section right away so user sees the scanning state
+    
     setTimeout(() => {
       analysisSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 80);
@@ -528,7 +528,7 @@ export default function ProjectsPage() {
     <div className="min-h-screen text-[#f0eeff] font-sans">
       <div className="relative z-10 md:max-w-7xl mx-auto px-9 pt-10 pb-20">
 
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3 animate-[fadeUp_0.5s_ease_both]">
           <div className="inline-flex items-center gap-1.5 bg-[#c4b0ff]/8 border border-[#c4b0ff]/20 rounded-full px-3.5 py-1.5 text-[11.5px] text-[#c4b0ff] font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-[#7ee8fa]" />
@@ -539,7 +539,7 @@ export default function ProjectsPage() {
           </button>
         </div>
 
-        {/* Hero */}
+        {}
         <div className="mb-9 animate-[fadeUp_0.5s_ease_both]" style={{ animationDelay: "0.1s" }}>
           <h1 className="text-[clamp(2rem,5vw,2.9rem)] font-bold leading-[1.1] tracking-[-0.03em] mb-2">
             Build the Features<br />
@@ -551,7 +551,7 @@ export default function ProjectsPage() {
           </p>
         </div>
 
-        {/* Filter bar */}
+        {}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3 animate-[fadeUp_0.5s_ease_both]" style={{ animationDelay: "0.2s" }}>
           <div className="flex gap-1.5 flex-wrap">
             {filters.map((f) => (
@@ -565,14 +565,14 @@ export default function ProjectsPage() {
           </span>
         </div>
 
-        {/* Loading skeleton */}
+        {}
         {!ready && (
           <div className="grid grid-cols-3 gap-[18px] max-[860px]:grid-cols-2 max-[540px]:grid-cols-1">
             {Array.from({ length: 6 }).map((_, i) => <ProjectSkeleton key={i} />)}
           </div>
         )}
 
-        {/* Empty state */}
+        {}
         {projects.length === 0 && ready && (
           <div className="flex flex-col items-center justify-center py-24 gap-4 text-center animate-[fadeUp_0.5s_ease_both]">
             <span className="text-5xl">🚀</span>
@@ -581,7 +581,7 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* Grid */}
+        {}
         {projects.length > 0 && ready && (
           <div className="grid grid-cols-3 gap-[18px] max-[860px]:grid-cols-2 max-[540px]:grid-cols-1">
             {filtered.map((p, i) => (
@@ -608,7 +608,7 @@ export default function ProjectsPage() {
                     {p.pct}%
                   </div>
                 </div>
-                {/* Hover Analyze Overlay */}
+                {}
                 <div className={`absolute inset-0 flex items-center justify-center rounded-2xl transition-all duration-200 ${hoveredId === p.id ? "opacity-100" : "opacity-0 pointer-events-none"}`} style={{ background: "rgba(8,11,18,0.78)", backdropFilter: "blur(4px)" }}>
                   <button onClick={(e) => { e.stopPropagation(); setAnalyzeProject(p); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#c4b0ff] via-[#7ee8fa] to-[#ff9de2] text-[#0a0714] font-bold text-[13px] shadow-[0_4px_28px_rgba(196,176,255,0.40)] hover:brightness-110 hover:scale-105 transition-all">
                     <Sparkles size={14} /> Analyze with AI
@@ -619,12 +619,12 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* ── Analysis section anchor ── */}
+        {}
         <div ref={analysisSectionRef} className="scroll-mt-8">
-          {/* Scanning state */}
+          {}
           {analyzing && <ScanningHeading />}
 
-          {/* Error */}
+          {}
           {analysisError && !analyzing && (
             <div className="animate-[fadeUp_0.4s_ease_both] mt-10 flex items-center justify-between gap-4 py-5 px-7 rounded-[18px] border border-red-400/25 bg-red-400/5">
               <p className="text-[13px] text-red-300/80">{analysisError}</p>
@@ -632,7 +632,7 @@ export default function ProjectsPage() {
             </div>
           )}
 
-          {/* Result */}
+          {}
           {analysisResult && !analyzing && (
             <AnalysisCard result={analysisResult} onClose={() => setAnalysisResult(null)} />
           )}
@@ -640,7 +640,7 @@ export default function ProjectsPage() {
 
       </div>
 
-      {/* Modals */}
+      {}
       {selectedProject && <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />}
       {showAddModal     && <AddProjectModal onClose={() => setShowAddModal(false)} onAdd={handleAdd} />}
       {analyzeProject   && <AnalyzeDialog project={analyzeProject} onClose={() => setAnalyzeProject(null)} onSubmit={handleAnalyzeSubmit} />}

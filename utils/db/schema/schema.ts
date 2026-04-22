@@ -65,7 +65,7 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 150 }).notNull(),
   avatarUrl: text("avatar_url"),
-  password: text("password").notNull(),
+  password: text("password"),
 
   targetRole: varchar("target_role", { length: 150 }).default("Software Engineer"),
 targetIndustry: varchar("target_industry", { length: 150 })

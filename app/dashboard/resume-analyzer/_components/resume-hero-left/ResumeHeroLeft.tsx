@@ -64,7 +64,7 @@ export default function ResumeHeroLeft() {
   return (
     <div className="flex flex-col gap-12 justify-center py-8 lg:py-10">
 
-      {/* Badge */}
+      {}
       <div className="animate-[fadeUp_0.5s_ease_both] inline-flex items-center gap-3 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 w-fit"
         style={{ animationDelay: "0s" }}
       >
@@ -74,7 +74,7 @@ export default function ResumeHeroLeft() {
         </span>
       </div>
 
-      {/* Main Title */}
+      {}
       <div className="animate-[fadeUp_0.5s_ease_both] flex flex-col" style={{ animationDelay: "0.1s" }}>
         <h1 className="text-5xl md:text-[5rem] font-black tracking-tighter leading-[0.9] text-white">
           Your Resume, <br />
@@ -85,13 +85,13 @@ export default function ResumeHeroLeft() {
       </div>
 
       <div className="animate-[fadeUp_0.5s_ease_both] flex flex-col gap-10" style={{ animationDelay: "0.2s" }}>
-        {/* Subtext */}
+        {}
         <p className="text-[16px] text-slate-400 max-w-xl leading-relaxed">
           Stop guessing why you aren't getting interviews. Our AI scans your resume
           against 1,000+ industry standards in real-time.
         </p>
 
-        {/* Accuracy Card */}
+        {}
         <div className="flex flex-col gap-5 p-6 rounded-2xl bg-white/[0.03] border backdrop-blur-md border-white/10 shadow-2xl max-w-xl">
           <div className="flex flex-wrap gap-10">
             <AccuracyMetric icon={FileText} label="PDF Extraction" pct={98} colorClass="text-emerald-400" bgClass="bg-emerald-400" />
@@ -105,7 +105,7 @@ export default function ResumeHeroLeft() {
           </div>
         </div>
 
-        {/* Features Grid */}
+        {}
         <div className="animate-[fadeUp_0.5s_ease_both] grid sm:grid-cols-2 gap-y-5 gap-x-12 mt-2" style={{ animationDelay: "0.3s" }}>
           {FEATURES.map((f) => (
             <FeatureItem key={f} text={f} />

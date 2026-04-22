@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // ── CALL 1: Profile (header, contactInfo, summary, skills) ──────────
+          
           console.log('🚀 Call 1: Profile analysis...');
 
           const res1 = await fetchWithRetry(
@@ -129,10 +129,10 @@ export async function POST(req: NextRequest) {
             emit(controller, 'skills', {});
           }
 
-          // ── breathing room between calls ─────────────────────────────────────
+          
           await new Promise(r => setTimeout(r, 2000));
 
-          // ── CALL 2: Deep analysis (workExperience, certifications, atsEvaluation, recruiterEye) ──
+          
           console.log('🚀 Call 2: Deep analysis...');
 
           const res2 = await fetchWithRetry(
@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
             emit(controller, 'recruiterEye', {});
           }
 
-          // ── total tokens ─────────────────────────────────────────────────────
+          
           const totalTokensUsed = tokens1 + tokens2;
           console.log(`🪙 Total tokens used: ${totalTokensUsed}`);
           emit(controller, 'totalTokensUsed', { count: totalTokensUsed });

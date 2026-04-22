@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveResumeSkills } from "@/utils/db/db-operations/skills-operations/skills";
  
-// Body: { userId, skills: string[] }
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

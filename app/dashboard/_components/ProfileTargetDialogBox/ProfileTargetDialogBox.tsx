@@ -96,7 +96,7 @@ const handleSubmit = async () => {
           Choose your goal or skip, you can always update later.
         </p>
 
-        {/* Role */}
+        {}
         <div className="mb-5">
           <label className="text-[13px] text-purple-200 block mb-1.5">Target Role</label>
           <input
@@ -123,7 +123,7 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        {/* Industry */}
+        {}
         <div className="mb-7">
           <label className="text-[13px] text-purple-200 block mb-1.5">Target Industry</label>
           <input
@@ -150,11 +150,11 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        {/* Actions */}
+        {}
         <div className="flex justify-between items-center">
           <div>
             <button
-              onClick={handleSkip} // ✅ was calling setOpen(false) directly — dismissed never set
+              onClick={handleSkip} 
               className="text-sm text-purple-300 hover:text-white transition-colors"
             >
               Skip

@@ -8,6 +8,7 @@ import {
 import Lottie from "lottie-react";
 import scanAnimation from "@/public/fileScanning.json";
 import { Dispatch, SetStateAction } from "react";
+import { useUser } from "@/context/UserContext";
 
 type AcceptedExt = "pdf" | "jpg" | "jpeg" | "png";
 type Stage = "idle" | "ready" | "dialog" | "scanning" | "done";
@@ -57,7 +58,7 @@ function getExt(filename: string): AcceptedExt | null {
   return ALLOWED_EXTS.includes(ext as AcceptedExt) ? (ext as AcceptedExt) : null;
 }
 
-// ── Chip ─────────────────────────────────────────────────────────────────────
+
 function Chip({ label, selected, onClick, color = "purple" }: {
   label: string; selected: boolean; onClick: () => void; color?: "purple" | "cyan";
 }) {
@@ -89,8 +90,9 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stepRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const localAnalysisRef = useRef<Record<string, any>>({});
+  const {user}=useUser();
 
-  // animate step text transitions
+  
   useEffect(() => {
     setStepVisible(false);
     const t = setTimeout(() => setStepVisible(true), 150);
@@ -153,8 +155,8 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
 
     const formData = new FormData();
     formData.append("file", uploaded.file);
-    formData.append("targetRole", targetRole || "Software Engineer");
-    formData.append("industry", industry || "Tech");
+    formData.append("targetRole", targetRole || user?.targetRole || "Software Engineer");
+    formData.append("industry", industry || user?.targetIndustry || "Tech");
 
     const res = await fetch("/api/dashboard/resume-analyzer", { method: "POST", body: formData });
     const reader = res.body!.getReader();
@@ -188,19 +190,19 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
    setTimeout(() => onDone?.({...localAnalysisRef.current,filename:uploaded.file.name}), 800);
   };
 
-  // ── DIALOG ────────────────────────────────────────────────────────────────
+  
   if (stage === "dialog") {
     return (
       <div className="animate-[fadeUp_0.4s_ease_both] w-full lg:max-w-lg rounded-2xl p-6 flex flex-col gap-5 relative bg-[rgba(10,13,28,0.95)] border border-[#c4b0ff]/22 shadow-[0_0_60px_rgba(196,176,255,0.10),0_24px_64px_rgba(0,0,0,0.5)] backdrop-blur-[32px]">
-        {/* Glow top */}
+        {}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-1 rounded-full bg-gradient-to-r from-transparent via-[#c4b0ff]/60 to-transparent" />
 
-        {/* Close */}
+        {}
         <button onClick={() => setStage("ready")} className="absolute top-4 right-4 p-1.5 rounded-lg bg-white/5 text-white/30 hover:text-white transition-colors">
           <X size={14} />
         </button>
 
-        {/* Header */}
+        {}
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#c4b0ff]/10 border border-[#c4b0ff]/20">
             <Briefcase size={16} className="text-[#c4b0ff]" />
@@ -213,7 +215,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
 
         <div className="h-px bg-white/6" />
 
-        {/* Target Role */}
+        {}
         <div className="flex flex-col gap-2.5">
           <label className="text-xs font-semibold tracking-widest uppercase text-[#c4b0ff]/60">Target Role</label>
           <div className="relative">
@@ -233,7 +235,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
           </div>
         </div>
 
-        {/* Industry */}
+        {}
         <div className="flex flex-col gap-2.5">
           <label className="text-xs font-semibold tracking-widest uppercase text-[#7ee8fa]/60">Industry</label>
           <div className="relative">
@@ -253,7 +255,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
           </div>
         </div>
 
-        {/* Submit */}
+        {}
         <button
           onClick={handleDialogSubmit}
           className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-bold bg-gradient-to-r from-[#c4b0ff] to-[#7ee8fa] text-[#080b12] shadow-[0_0_24px_rgba(196,176,255,0.30)] hover:brightness-110 hover:-translate-y-px transition-all mt-1"
@@ -270,7 +272,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
     );
   }
 
-  // ── SCANNING ──────────────────────────────────────────────────────────────
+  
   if (stage === "scanning") {
     return (
       <div className="animate-[fadeUp_0.5s_ease_both] w-full flex flex-col items-center justify-center gap-6 py-10 px-4" style={{ minHeight: 420 }}>
@@ -295,7 +297,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
           </div>
         )}
 
-        {/* Step text with fade transition */}
+        {}
         <p className={`text-sm font-medium text-center text-[#dcd7ff]/75 transition-all duration-300 ${stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
           {SCAN_STEPS[stepIndex]}
         </p>
@@ -325,7 +327,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
     );
   }
 
-  // ── DONE ──────────────────────────────────────────────────────────────────
+  
   if (stage === "done") {
     return (
       <div className="animate-[fadeUp_0.55s_ease_both] w-full flex flex-col items-center justify-center gap-5 py-10 px-4 text-center" style={{ minHeight: 420 }}>
@@ -361,7 +363,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
     );
   }
 
-  // ── IDLE / READY ──────────────────────────────────────────────────────────
+  
   return (
     <div className="animate-[fadeUp_0.5s_ease_both] w-full lg:max-w-lg rounded-2xl border border-white/10 backdrop-blur-3xl bg-gradient-to-br from-purple-900/30 to-blue-900/20 p-6 flex flex-col gap-4">
       <div>
@@ -384,7 +386,7 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
           <div className="animate-[fadeUp_0.4s_ease_both] flex flex-col items-center gap-2">
             <UploadCloud size={32} className="text-purple-300" />
             <p className="text-white font-semibold">Drop your resume</p>
-            <p className="text-xs text-white/40">PDF, JPG or PNG · or click to browse</p>
+            <p className="text-xs text-white/40">Only PDF - click to browse</p>
           </div>
         )}
         {stage === "ready" && uploaded && (

@@ -1,4 +1,4 @@
-// app/api/dashboard/resume-analyzer/route.ts
+
 
 import { NextRequest } from 'next/server';
 import { extractText as unpdfExtract } from 'unpdf';
@@ -30,13 +30,13 @@ async function fetchWithRetry(url: string, options: RequestInit, section: string
   return null;
 }
 
-// Tries JSON.parse, then attempts to salvage truncated output
+
 function safeParseJSON(raw: string): any | null {
   const cleaned = raw.replace(/```json|```/g, '').trim();
   try {
     return JSON.parse(cleaned);
   } catch {
-    // Truncated mid-JSON — find last complete top-level field
+    
     try {
       const lastComma = cleaned.lastIndexOf(',"');
       const truncated = cleaned.slice(0, lastComma) + '\n}';
@@ -51,7 +51,7 @@ function safeParseJSON(raw: string): any | null {
 function groqBody(model: string, content: string) {
   return JSON.stringify({
     model,
-    max_tokens: 4096,  // explicit ceiling — Groq default is often lower
+    max_tokens: 4096,  
     messages: [{ role: 'user', content }],
   });
 }
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         let tokens1 = 0, tokens2 = 0, tokens3 = 0;
 
         try {
-          // ── CALL 1: Profile (header, contactInfo, summary, skills) ──────────
+          
           console.log('🚀 Call 1: Profile analysis...');
           const res1 = await fetchWithRetry(
             'https://api.groq.com/openai/v1/chat/completions',
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
           await new Promise(r => setTimeout(r, 2000));
 
-          // ── CALL 2A: Work experience + certifications ─────────────────────
+          
           console.log('🚀 Call 2A: Work experience + certifications...');
           const res2 = await fetchWithRetry(
             'https://api.groq.com/openai/v1/chat/completions',
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
 
           await new Promise(r => setTimeout(r, 1000));
 
-          // ── CALL 2B: ATS evaluation + recruiter eye ───────────────────────
+          
           console.log('🚀 Call 2B: ATS + recruiter...');
           const res3 = await fetchWithRetry(
             'https://api.groq.com/openai/v1/chat/completions',

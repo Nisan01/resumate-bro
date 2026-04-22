@@ -60,7 +60,7 @@ const dashboardStyles = `
   ::-webkit-scrollbar-track { background:transparent; }
   ::-webkit-scrollbar-thumb { background:rgba(196,176,255,.15); border-radius:4px; }
 
-  /* ── Responsive overrides ── */
+  
   .rmd-stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -290,7 +290,7 @@ export default function ResumeateDashboard() {
   const [activeTab, setActiveTab] = useState("resume");
   const tab = HOW_TABS.find((t) => t.id === activeTab)!;
   const [tokens, setTokens] = useState({ totalSkillTokens: 0, totalResumeTokens: 0, totalAllTokens: 0 });
-  const [count, setCount] = useState<ResumeCount>({ resumeCount: 0 });
+  const [count, setCount] = useState({ resumeCount: 0 });
   const { user, logout } = useUser();
   const [resumes, setResumes] = useState<any[]>([]);
   const [projectsCount, setProjectsCount] = useState(0);
@@ -301,16 +301,20 @@ export default function ResumeateDashboard() {
     if (!user) return;
     const fetchStats = async () => {
       try {
-        const [tokenRes, countRes, projectsRes] = await Promise.all([
-          fetch("/api/get-user-tokens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: user.id }) }),
-          fetch("/api/get-resume-count", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: user.id }) }),
-          fetch("/api/get-projects-resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: user.id }) }),
-        ]);
-        setTokens(await tokenRes.json());
-        setCount(await countRes.json());
-        const projectsData = await projectsRes.json();
-        setProjectsCount(projectsData.projectCounts || 0);
-        setResumes(projectsData.resumes || []);
+        const res= await fetch("/api/dashboard/stats", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        if (!res.ok) throw new Error("Failed to fetch dashboard stats");
+
+        const { tokens: tokenRes, resumeCount: countRes, projectCounts: projectsRes,resumes:resumes } = await res.json();
+
+        setTokens(tokenRes);
+        setCount({ resumeCount: countRes });
+      
+        setProjectsCount(projectsRes || 0);
+        setResumes(resumes || []);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -328,10 +332,9 @@ export default function ResumeateDashboard() {
     <>
       <style>{dashboardStyles}</style>
 
-      {/* background */}
+     
       <div className="rmd-wrap" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", ...meshBg }} />
 
-      {/* orbs — hide smaller orbs on mobile to reduce noise */}
       <div className="rmd-orb" style={{ width: 340, height: 340, top: -80, right: "8%", opacity: 0.45, animationDuration: "22s" }} />
       <div className="rmd-orb" style={{ width: 200, height: 200, top: "38%", left: "2%", opacity: 0.35, animationDuration: "18s", animationDelay: "-6s" }} />
       <div className="rmd-orb" style={{ width: 120, height: 120, bottom: "12%", left: "45%", opacity: 0.3, animationDuration: "15s", animationDelay: "-4s" }} />
@@ -346,17 +349,18 @@ export default function ResumeateDashboard() {
           style={{ margin: "0 auto", display: "flex", flexDirection: "column", gap: 32 }}
         >
 
-          {/* ── TOP BAR ── */}
+          {}
           <div className="rmd-fade-up" style={{ animationDelay: ".05s" }}>
             <Card style={{ padding: "12px 16px" }}>
               <div className="rmd-topbar-inner">
                 <Image
-                  src={user?.avatarUrl || `https://api.dicebear.com/9.x/pixel-art/svg?seed=${user?.name || "User"}`}
+                  src={user?.avatarUrl || `https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(user?.name || user?.email || "user")}`}
                   alt={user?.name || "User"}
                   width={40}
                   height={40}
                   className="rounded-full object-cover"
                   style={{ width: 40, height: 40, flexShrink: 0 }}
+                  priority
                 />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: "#f0eeff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -382,7 +386,7 @@ export default function ResumeateDashboard() {
             </Card>
           </div>
 
-          {/* ── OVERVIEW STATS ── */}
+          
           <div className="rmd-fade-up" style={{ animationDelay: ".1s" }}>
             <SectionLabel
               label="overview"
@@ -396,17 +400,17 @@ export default function ResumeateDashboard() {
             <div className="rmd-stats-grid">
               {[
                 {
-                  color: "#c4b0ff", label: "Resumes Generated", value: `${count.resumeCount}`, sub: "total generated",
+                  color: "#c4b0ff", label: "Resumes Generated", value: `${count.resumeCount || 0}`, sub: "total generated",
                   icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /></svg>,
                   points: "0,20 13,16 26,18 39,11 52,13 65,7 80,3", gradId: "sg1",
                 },
                 {
-                  color: "#7ee8fa", label: "Tokens Used", value: `${tokens.totalAllTokens}`, sub: "AI usage",
+                  color: "#7ee8fa", label: "Tokens Used", value: `${(tokens.totalAllTokens / 1000).toFixed(1)}k`, sub: "AI usage",
                   icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="16" x="4" y="4" rx="2" /><rect width="6" height="6" x="9" y="9" rx="1" /></svg>,
                   points: "0,22 13,17 26,19 39,13 52,9 65,11 80,5", gradId: "sg2",
                 },
                 {
-                  color: "#ff9de2", label: "Projects Added", value: projectsCount, sub: "in portfolio",
+                  color: "#ff9de2", label: "Projects Added", value: `${projectsCount || 0}`, sub: "in portfolio",
                   icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></svg>,
                   points: "0,22 13,19 26,21 39,16 52,18 65,12 80,8", gradId: "sg3",
                 },
@@ -450,7 +454,7 @@ export default function ResumeateDashboard() {
             </div>
           </div>
 
-          {/* ── RECENT ANALYSIS ── */}
+          {}
           <div className="rmd-fade-up" style={{ animationDelay: ".15s" }}>
             <SectionLabel
               label="recent analysis"
@@ -460,12 +464,11 @@ export default function ResumeateDashboard() {
                 </svg>
               }
             />
-            <div className="rmd-resumes-grid">
+            <div className="rmd-resumes-grid ">
               {resumesLoading
                 ? Array.from({ length: 4 }).map((_, i) => (
-                    <Card key={i} style={{ padding: 14 }}>
+                    <Card key={i} style={{ padding: 14,display: "flex", alignItems: "center", gap: 10, animation: "pulse 1.5s ease-in-out infinite" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        {/* avatar circle skeleton */}
                         <Skeleton
                           className="rounded-full shrink-0"
                           style={{
@@ -474,14 +477,13 @@ export default function ResumeateDashboard() {
                           }}
                         />
                         <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                          {/* filename line */}
                           <Skeleton
                             style={{
                               height: 13, width: "65%", borderRadius: 6,
                               background: "rgba(196,176,255,.08)",
                             }}
                           />
-                          {/* tags + date row */}
+                          {}
                           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                             <Skeleton style={{ height: 18, width: 52, borderRadius: 999, background: "rgba(196,176,255,.07)" }} />
                             <Skeleton style={{ height: 18, width: 44, borderRadius: 999, background: "rgba(196,176,255,.07)" }} />
@@ -491,7 +493,75 @@ export default function ResumeateDashboard() {
                       </div>
                     </Card>
                   ))
-                : resumes.map((r) => {
+                :
+                
+                
+                 resumes.length === 0 ? (
+  <Card
+    style={{
+      padding: 20,
+       gridColumn: "1 / -1",
+      textAlign: "center",
+      display: "flex",
+
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      minHeight: 120,
+      background: "rgba(255,255,255,.03)",
+      border: "1px dashed rgba(196,176,255,.2)",
+    }}
+  >
+
+<div className="flex items-center w-full justify-between gap-14">
+    <div className="flex items-center gap-3">
+    <div
+      style={{
+        width: 42,
+        height: 42,
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(126,232,250,.08)",
+        color: "#7ee8fa",
+      }}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+        <polyline points="14 2 14 8 20 8" />
+      </svg>
+    </div>
+
+    <div style={{ fontSize: 13, color: "rgba(196,176,255,.7)", fontWeight: 500 }}>
+      No resumes analyzed yet
+    </div>
+
+</div>
+
+    {}
+    <button
+      onClick={() => router.push("/dashboard/resume-analyzer")}
+      style={{
+        marginTop: 6,
+        padding: "8px 14px",
+        borderRadius: 10,
+        fontSize: 12,
+        fontWeight: 600,
+        background: "linear-gradient(135deg,#7ee8fa,#38b2ac)",
+        color: "#0a0714",
+        border: "none",
+        cursor: "pointer",
+        boxShadow: "0 2px 12px rgba(126,232,250,.25)",
+      }}
+    >
+      Analyze Resume
+    </button>
+    </div>
+  </Card>
+) : (
+  resumes.map((r) => {
                     const skills: Skill[] = r.extractedSkills?.skills?.slice(0, 3) || [];
                     return (
                       <Card key={r.id} style={{ padding: 14, cursor: "pointer" }}>
@@ -527,15 +597,19 @@ export default function ResumeateDashboard() {
                       </Card>
                     );
                   })
-              }
+                )
+                
+              
+                }
+              
             </div>
           </div>
 
-          {/* ── HOW IT WORKS ── */}
+          {}
           <div className="rmd-fade-up" style={{ animationDelay: ".2s" }}>
             <SectionLabel label="how it works" icon={<SparkleIcon />} />
 
-            {/* Tab bar — horizontally scrollable on mobile */}
+            {}
             <div className="rmd-tab-bar" style={{ marginBottom: 20 }}>
               {HOW_TABS.map((t) => {
                 const active = activeTab === t.id;
@@ -563,12 +637,12 @@ export default function ResumeateDashboard() {
               })}
             </div>
 
-            {/* Tab content */}
+            {}
             <Card style={{ padding: "20px 18px", overflow: "hidden", position: "relative" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${tab.color},transparent)`, borderRadius: "16px 16px 0 0" }} />
               <div style={{ position: "absolute", top: -40, right: -40, width: 220, height: 220, borderRadius: "50%", background: `radial-gradient(circle,${tab.color}12 0%,transparent 70%)`, pointerEvents: "none" }} />
 
-              {/* headline */}
+              {}
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
                   <div style={{ width: 30, height: 30, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: `${tab.color}1f`, color: tab.color, flexShrink: 0, marginTop: 2 }}>
@@ -586,10 +660,10 @@ export default function ResumeateDashboard() {
                 </p>
               </div>
 
-              {/* steps + features — stacks on mobile */}
+              {}
               <div className="rmd-how-grid">
 
-                {/* Steps */}
+                {}
                 <div>
                   <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(196,176,255,.4)", marginBottom: 12, fontFamily: "'DM Sans',sans-serif" }}>
                     Steps
@@ -610,7 +684,7 @@ export default function ResumeateDashboard() {
                   </div>
                 </div>
 
-                {/* Features */}
+                {}
                 <div>
                   <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(196,176,255,.4)", marginBottom: 12, fontFamily: "'DM Sans',sans-serif" }}>
                     Features
@@ -625,7 +699,7 @@ export default function ResumeateDashboard() {
                     ))}
                   </div>
 
-                  {/* CTA */}
+                  {}
                   <button
                     onClick={() => routeHandler(tab.routePath)}
                     style={{
@@ -642,7 +716,7 @@ export default function ResumeateDashboard() {
                 </div>
               </div>
 
-              {/* bottom tip */}
+              {}
               <div style={{ marginTop: 18, padding: "10px 14px", borderRadius: 10, background: "rgba(255,255,255,.025)", border: "1px solid rgba(196,176,255,.07)", display: "flex", alignItems: "flex-start", gap: 8 }}>
                 <div style={{ color: tab.color, flexShrink: 0, marginTop: 1 }}><CheckIcon /></div>
                 <p style={{ fontSize: 12, color: "rgba(196,176,255,.5)", lineHeight: 1.55, margin: 0 }}>

@@ -2,9 +2,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-/* ─────────────────────────────────────────────
-   GLOBAL KEYFRAMES  (injected once via <style>)
-───────────────────────────────────────────────*/
+
+
+
 const GlobalStyles = () => (
   <style>{`
     html { scroll-behavior: smooth; }
@@ -157,7 +157,7 @@ const GlobalStyles = () => (
   `}</style>
 );
 
-/* ─── scroll-reveal hook ─── */
+
 function useRevealObserver() {
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -169,7 +169,7 @@ function useRevealObserver() {
   }, []);
 }
 
-/* ─── Orb component (from Settings page) ─── */
+
 function Orb({
   size, top, left, right, bottom, duration, delay, opacity, ring = false,
 }: {
@@ -205,7 +205,7 @@ function Orb({
   );
 }
 
-/* ─── avatar card ─── */
+
 function AvatarCard({ seed, style, name, role, rating, work, badge }: {
   seed: string; style: string; name: string; role: string;
   rating: string; work: string; badge: string;
@@ -245,7 +245,7 @@ function AvatarCard({ seed, style, name, role, rating, work, badge }: {
   );
 }
 
-/* ─── skill bar ─── */
+
 function SkillBar({ label, pct, gradFrom, gradTo, valColor }: {
   label: string; pct: number; gradFrom: string; gradTo: string; valColor: string;
 }) {
@@ -264,7 +264,7 @@ function SkillBar({ label, pct, gradFrom, gradTo, valColor }: {
   );
 }
 
-/* ─── step ─── */
+
 function Step({ emoji, name, desc }: { emoji: string; name: string; desc: string }) {
   return (
     <div className="step" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "0 16px", position: "relative" }}>
@@ -284,9 +284,9 @@ function Step({ emoji, name, desc }: { emoji: string; name: string; desc: string
   );
 }
 
-/* ══════════════════════════════════
-   MAIN PAGE
-══════════════════════════════════ */
+
+
+
 export default function Page() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -313,7 +313,7 @@ export default function Page() {
     <div style={{ background: S.bg, color: S.text, fontFamily: "system-ui,sans-serif", fontSize: 16, lineHeight: 1.6, minHeight: "100vh", overflowX: "hidden", position: "relative" }}>
       <GlobalStyles />
 
-      {/* ── mesh gradient bg ── */}
+      {}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 70% 55% at 15% 20%,rgba(90,60,180,.28),transparent 60%)" }} />
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 55% 45% at 85% 10%,rgba(60,140,200,.2),transparent 55%)" }} />
@@ -321,13 +321,13 @@ export default function Page() {
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 40% 35% at 10% 80%,rgba(40,100,190,.15),transparent 50%)" }} />
       </div>
 
-      {/* ── grain overlay ── */}
+      {}
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none", opacity: .5, zIndex: 0,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http:
       }} />
 
-      {/* ── ORB LAYER ── */}
+      {}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }} aria-hidden>
         <Orb size={340} top="-80px"   right="8%"            duration={22}         opacity={0.45} />
         <Orb size={200} top="38%"     left="2%"             duration={18} delay={-6}  opacity={0.35} />
@@ -338,7 +338,7 @@ export default function Page() {
         <Orb size={260} bottom="-60px" right="-40px"        duration={25} delay={-12} opacity={0.28} />
       </div>
 
-      {/* ════════════ NAVBAR ════════════ */}
+      {}
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999,
         padding: "18px 0",
@@ -350,13 +350,13 @@ export default function Page() {
         <div style={{ maxWidth: 1250, margin: "0 auto", padding: "0 40px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center" }}>
 
-            {/* logo */}
+            {}
             <a href="#" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: S.text, fontSize: "1.35rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
       <img src="/logo.png" alt="Resumate Bro" style={{ height: 36, width: "auto", objectFit: "contain" }} />
       Resumate Bro
     </a>
 
-            {/* desktop links */}
+            {}
             <ul style={{ display: "flex", justifyContent: "center", gap: 60, listStyle: "none", margin: 0, padding: 0 }} className="nav-links-desktop">
               {[["#features","Features"],["#how","How It Works"],["#","Contact"]].map(([href,lbl]) => (
                 <li key={lbl}><a href={href} style={{ color: S.muted, textDecoration: "none", fontSize: "0.9rem", transition: "color .2s" }}
@@ -365,19 +365,19 @@ export default function Page() {
               ))}
             </ul>
 
-            {/* cta */}
+            {}
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <Link href="/sign-in" className="btn btn-primary" style={{ padding: "9px 20px", borderRadius: 8, fontSize: "0.875rem", textDecoration: "none", display: "inline-flex", alignItems: "center" }}>Sign In</Link>
-              {/* hamburger */}
+              {}
 
-              {/* hamburger */}
+              {}
               <button onClick={() => setMenuOpen(!menuOpen)} style={{ display: "none", flexDirection: "column", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 4 }} className="hamburger-btn">
                 {[0,1,2].map(i => <span key={i} style={{ width: 22, height: 2, background: S.muted, borderRadius: 2, display: "block" }} />)}
               </button>
             </div>
           </div>
 
-          {/* mobile menu */}
+          {}
           {menuOpen && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "20px 0", borderTop: `1px solid ${S.border}`, marginTop: 12 }}>
               {[["#features","Features"],["#how","How It Works"],["#","Contact"]].map(([href,lbl]) => (
@@ -388,12 +388,12 @@ export default function Page() {
         </div>
       </nav>
 
-      {/* ════════════ HERO ════════════ */}
+      {}
       <section id="hero" style={{ minHeight: "100vh", display: "flex", alignItems: "center", padding: "120px 0 80px", position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 1250, margin: "0 auto", padding: "0 40px", width: "100%" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
 
-            {/* left */}
+            {}
             <div className="reveal" style={{ display: "flex", flexDirection: "column" }}>
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 8, alignSelf: "flex-start",
@@ -429,7 +429,7 @@ export default function Page() {
               </div>
             </div>
 
-            {/* right – dashboard card */}
+            {}
             <div className="reveal" style={{ transitionDelay: "0.15s", position: "relative", padding: "20px 30px 20px 20px" }}>
               <svg width="0" height="0" style={{ position: "absolute" }}>
                 <defs>
@@ -445,7 +445,7 @@ export default function Page() {
                 background: S.surface, border: `1px solid ${S.border}`, borderRadius: 16,
                 padding: 24, backdropFilter: "blur(12px)", position: "relative",
               }}>
-                {/* shine border */}
+                {}
                 <div style={{ position: "absolute", inset: -1, borderRadius: 17, background: "linear-gradient(135deg,rgba(196,176,255,.2),rgba(126,232,250,.1),transparent 60%)", zIndex: -1 }} />
 
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
@@ -454,7 +454,7 @@ export default function Page() {
                   <span style={{ marginLeft: "auto", fontSize: "0.7rem", color: S.muted }}>Live</span>
                 </div>
 
-                {/* ring */}
+                {}
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
                   <div style={{ position: "relative", width: 120, height: 120 }}>
                     <svg viewBox="0 0 100 100" width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
@@ -475,7 +475,7 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* floating chips */}
+              {}
               <div className="float-chip" style={{
                 position: "absolute", top: -18, left: -30,
                 background: "rgba(13,16,28,.9)", border: "1px solid rgba(196,176,255,.2)",
@@ -509,7 +509,7 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ════════════ FEATURES ════════════ */}
+      {}
       <section id="features" style={{ padding: "100px 40px", position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 1250, margin: "0 auto" }}>
           <div className="reveal" style={{ marginBottom: 60 }}>
@@ -529,7 +529,7 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ════════════ HOW IT WORKS ════════════ */}
+      {}
       <section id="how" style={{ padding: "100px 0", background: "linear-gradient(180deg,transparent,rgba(13,18,32,.6) 30%,rgba(13,18,32,.6) 70%,transparent)", position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 1250, margin: "0 auto", padding: "0 40px" }}>
           <div className="reveal" style={{ textAlign: "center", marginBottom: 60 }}>
@@ -539,7 +539,7 @@ export default function Page() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 0, position: "relative" }}>
-            {/* connector */}
+            {}
             <div style={{ position: "absolute", top: 48, left: "12.5%", right: "12.5%", height: 2, background: "linear-gradient(90deg,rgba(196,176,255,.5),rgba(126,232,250,.4),rgba(255,157,226,.3))", opacity: .5 }} />
             <Step emoji="📤" name="Upload Resume"          desc="Drop your PDF or Word doc. We support all formats and instantly parse the content." />
             <Step emoji="🧠" name="Analyze Skills"         desc="Our AI maps every skill, experience, and achievement to industry benchmarks." />
@@ -549,7 +549,7 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ════════════ CTA ════════════ */}
+      {}
       <section id="cta" style={{ padding: "100px 0", position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 1250, margin: "0 auto", padding: "0 40px" }}>
           <div className="reveal" style={{
@@ -569,7 +569,7 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ════════════ FOOTER ════════════ */}
+      {}
       <footer style={{ padding: "48px 40px 20px", borderTop: `1px solid ${S.border}`, display: "flex", flexDirection: "column", gap: 26, position: "relative", zIndex: 1 }}>
 
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 28, maxWidth: 1180, margin: "0 auto", width: "100%" }}>
@@ -593,7 +593,7 @@ export default function Page() {
           ))}
         </div>
 
-        {/* subscribe */}
+        {}
         <div style={{
           maxWidth: 1180, margin: "0 auto", width: "100%",
           border: "1px solid rgba(255,255,255,.12)", background: S.surface,
@@ -612,7 +612,7 @@ export default function Page() {
           <p style={{ color: S.muted, fontSize: "0.85rem" }}>Get career tips, resume tricks, and AI insights once a week.</p>
         </div>
 
-        {/* bottom */}
+        {}
         <div style={{
           maxWidth: 1180, margin: "0 auto", width: "100%",
           borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 14,

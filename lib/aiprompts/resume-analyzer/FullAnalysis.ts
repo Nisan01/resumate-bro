@@ -1,6 +1,4 @@
-// lib/aiprompts/resume-analyzer/FullAnalysis.ts
 
-// ── reuse your existing detailed prompt bodies ──────────────────────────────
 
 export const analyzeProfilePrompt = (resumeText: string, targetRole: string) => `
 You are an expert resume analyzer.

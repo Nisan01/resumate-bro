@@ -7,7 +7,7 @@ import {
   X, ChevronRight, BarChart3, BookOpen, Eye, EyeOff
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+
 
 type SkillSource = "resume" | "manual" | "suggested";
 type SkillProficiency = "none" | "beginner" | "intermediate" | "advanced" | "expert";
@@ -31,7 +31,7 @@ interface Skill {
   updatedAt: string;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+
 
 const PROFICIENCY_ORDER: SkillProficiency[] = ["none", "beginner", "intermediate", "advanced", "expert"];
 
@@ -99,7 +99,7 @@ const INDUSTRIES = [
   "Blockchain", "Embedded Systems",
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 
 function cycleStatus(current: SkillStatus): SkillStatus {
   const order: SkillStatus[] = ["interested", "learning", "learned", "ignored"];
@@ -110,7 +110,7 @@ function cycleProficiency(current: SkillProficiency): SkillProficiency {
   return PROFICIENCY_ORDER[(PROFICIENCY_ORDER.indexOf(current) + 1) % PROFICIENCY_ORDER.length];
 }
 
-// ─── SkillCard ────────────────────────────────────────────────────────────────
+
 
 function SkillCard({ skill, onStatusChange, onProficiencyChange, onDelete }: {
   skill: Skill;
@@ -120,7 +120,7 @@ function SkillCard({ skill, onStatusChange, onProficiencyChange, onDelete }: {
 }) {
   const isIgnored = skill.status === "ignored";
 
-  // Color scheme per source
+  
   const sourceColors = {
     resume: {
       border: isIgnored ? "border-white/5" : "border-blue-500/20 hover:border-blue-400/40",
@@ -152,12 +152,12 @@ function SkillCard({ skill, onStatusChange, onProficiencyChange, onDelete }: {
       className={`group relative flex flex-col rounded-2xl border p-4 transition-all duration-300 hover:shadow-lg ${c.border} ${c.bg} ${c.glow} ${
         isIgnored ? "opacity-40" : ""
       }`}
-      style={{ minHeight: "226px" }}  // uniform min height
+      style={{ minHeight: "226px" }}  
     >
-      {/* Top row — source + priority + delete */}
+      {}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex flex-wrap items-center gap-1.5">
-          {/* Colored source dot + label */}
+          {}
           <div className="flex items-center gap-1.5">
             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}`} />
             <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">
@@ -184,14 +184,14 @@ function SkillCard({ skill, onStatusChange, onProficiencyChange, onDelete }: {
         </button>
       </div>
 
-      {/* Skill name */}
+      {}
       <p className={`text-sm font-semibold leading-tight tracking-tight mb-2 ${
         isIgnored ? "line-through text-white/20" : "text-white"
       }`}>
         {skill.skillName}
       </p>
 
-      {/* Reason — fixed height zone so cards stay aligned */}
+      {}
       <div className="flex-1 mb-3">
         {skill.meta?.reason ? (
           <p className="text-[11px] text-white/30 leading-relaxed border-l-2 border-purple-500/30 pl-2.5 italic line-clamp-2">
@@ -202,7 +202,7 @@ function SkillCard({ skill, onStatusChange, onProficiencyChange, onDelete }: {
           </p>}
       </div>
 
-      {/* Proficiency — always at same vertical position */}
+      {}
       <div className="mt-auto">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
@@ -219,7 +219,7 @@ function SkillCard({ skill, onStatusChange, onProficiencyChange, onDelete }: {
           <div className={`h-1 rounded-full transition-all duration-700 ease-out ${PROFICIENCY_BAR[skill.proficiency]} ${PROFICIENCY_WIDTH[skill.proficiency]}`} />
         </div>
 
-        {/* Status badge */}
+        {}
         <button
           onClick={() => onStatusChange(skill.id, cycleStatus(skill.status))}
           className={`rounded-full px-3 py-1 text-[10px] font-bold transition-all duration-200 hover:scale-105 ${STATUS_STYLES[skill.status]}`}
@@ -231,7 +231,7 @@ function SkillCard({ skill, onStatusChange, onProficiencyChange, onDelete }: {
   );
 }
 
-// ─── AddSkillModal ────────────────────────────────────────────────────────────
+
 
 function AddSkillModal({ onClose, onAdd }: {
   onClose: () => void;
@@ -255,7 +255,7 @@ function AddSkillModal({ onClose, onAdd }: {
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0f0b1e]/90 backdrop-blur-xl p-6 shadow-2xl shadow-black/60 animate-in fade-in slide-in-from-bottom-4 duration-300">
-        {/* Header */}
+        {}
      <div className="flex items-center justify-between mb-5">
   <div className="flex items-center gap-2">
     <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
@@ -320,7 +320,7 @@ function AddSkillModal({ onClose, onAdd }: {
   );
 }
 
-// ─── IndustryAnalyzerPanel ────────────────────────────────────────────────────
+
 
 function IndustryAnalyzerPanel({ onAnalyze, analyzing, lastIndustry }: {
   onAnalyze: (industry: string) => Promise<void>;
@@ -333,7 +333,7 @@ function IndustryAnalyzerPanel({ onAnalyze, analyzing, lastIndustry }: {
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-5">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-2.5 mb-1">
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500/30 to-blue-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
           <Brain className="w-4 h-4 text-purple-300" />
@@ -411,7 +411,7 @@ function IndustryAnalyzerPanel({ onAnalyze, analyzing, lastIndustry }: {
   );
 }
 
-// ─── StatsBar ─────────────────────────────────────────────────────────────────
+
 
 function StatsBar({ skills }: { skills: Skill[] }) {
   const total = skills.filter((s) => s.status !== "ignored").length;
@@ -435,7 +435,7 @@ function StatsBar({ skills }: { skills: Skill[] }) {
             {s.icon}
           </div>
           <p className="text-[11px] text-white/30 font-medium">{s.label}</p>
-          {/* subtle corner glow */}
+          {}
           <div className="pointer-events-none absolute -bottom-4 -right-4 w-16 h-16 rounded-full bg-white/5 blur-xl" />
         </div>
       ))}
@@ -443,7 +443,7 @@ function StatsBar({ skills }: { skills: Skill[] }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+
 
 export default function SkillsTrackerPage() {
   const { user } = useUser();
@@ -585,11 +585,11 @@ export default function SkillsTrackerPage() {
 
   return (
     <div className="relative min-h-screen text-white">
-      {/* Ambient orbs */}
+      {}
       <div className="pointer-events-none fixed top-0 left-1/4 w-96 h-96 rounded-full bg-purple-700/10 blur-[140px]" />
       <div className="pointer-events-none fixed bottom-0 right-1/4 w-80 h-80 rounded-full bg-blue-700/10 blur-[120px]" />
 
-      {/* Grid texture */}
+      {}
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.03]"
         style={{
@@ -598,7 +598,7 @@ export default function SkillsTrackerPage() {
         }}
       />
 
-      {/* Toast */}
+      {}
       {toastMessage && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/10 backdrop-blur-xl px-5 py-2.5 text-xs text-white shadow-2xl">
@@ -609,7 +609,7 @@ export default function SkillsTrackerPage() {
       )}
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {/* Header */}
+        {}
         <div className="mb-8 flex items-start justify-between gap-2 md:gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -631,15 +631,15 @@ export default function SkillsTrackerPage() {
           </button>
         </div>
 
-        {/* Stats */}
+        {}
         <div className="mb-6">
           <StatsBar skills={skills} />
         </div>
 
         <div className="flex gap-5 flex-col lg:flex-row">
-          {/* Main content */}
+          {}
           <div className="flex-1 min-w-0">
-            {/* Filters */}
+            {}
             <div className="mb-5 flex flex-wrap items-center gap-3">
               <div className="flex gap-1 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-1">
                 {SOURCE_TABS.map((tab) => (
@@ -674,7 +674,7 @@ export default function SkillsTrackerPage() {
               </div>
             </div>
 
-            {/* Grid */}
+            {}
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {Array.from({ length: 9 }).map((_, i) => (
@@ -721,7 +721,7 @@ export default function SkillsTrackerPage() {
             )}
           </div>
 
-          {/* Sidebar */}
+          {}
           <div className="w-full lg:w-72 shrink-0 flex flex-col gap-4">
             <IndustryAnalyzerPanel
               onAnalyze={handleAnalyze}
@@ -729,7 +729,7 @@ export default function SkillsTrackerPage() {
               lastIndustry={lastIndustry}
             />
 
-            {/* Status guide */}
+            {}
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Eye className="w-3.5 h-3.5 text-white/25" />

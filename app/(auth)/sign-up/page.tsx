@@ -38,7 +38,7 @@ export default function SignUpPage() {
   return (
     <div className="relative min-h-screen bg-[#080b12] text-[#f0eeff] overflow-x-hidden font-['Soria',-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif]">
 
-      {/* Mesh Gradient Background */}
+      {}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -55,18 +55,18 @@ export default function SignUpPage() {
         }}
       />
 
-      {/* Grain Overlay */}
+      {}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.5 }}
         transition={{ duration: 1 }}
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http:
         }}
       />
 
-      {/* Glassmorphic Orbs */}
+      {}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         {[
           { width: 340, height: 340, top: -80, right: "8%", duration: 22, opacity: 0.55, delay: 0 },
@@ -111,7 +111,7 @@ export default function SignUpPage() {
           />
         ))}
 
-        {/* Orb Rings */}
+        {}
         <motion.div
           className="absolute rounded-full border-[1.5px] border-transparent"
           style={{
@@ -158,9 +158,9 @@ export default function SignUpPage() {
         />
       </div>
 
-      {/* Main Layout */}
+      {}
       <div className="relative z-10 flex flex-col lg:flex-row min-h-screen overflow-x-hidden overflow-y-hidden">
-        {/* LEFT SECTION */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -168,7 +168,7 @@ export default function SignUpPage() {
           className="flex-1 flex items-center justify-center px-6 sm:px-10 lg:px-14 py-12 lg:py-12"
         >
           <div className="max-w-2xl w-full">
-            {/* Trust Badge */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -204,7 +204,7 @@ export default function SignUpPage() {
               </span>
             </motion.div>
 
-            {/* Badge */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -229,7 +229,7 @@ export default function SignUpPage() {
               </span>
             </motion.div>
 
-            {/* Headline */}
+            {}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -254,7 +254,7 @@ export default function SignUpPage() {
               </motion.span>
             </motion.h1>
 
-            {/* Description */}
+            {}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -265,7 +265,7 @@ export default function SignUpPage() {
               interviews — all in one platform built for your success.
             </motion.p>
 
-            {/* CTA Buttons */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -314,7 +314,7 @@ export default function SignUpPage() {
               </motion.button>
             </motion.div>
 
-            {/* Stats */}
+            {}
             <div className="flex gap-8 sm:gap-12 pt-8 border-t border-white/10">
               {[
                 { value: "48k+", label: "Users Joined" },
@@ -338,7 +338,7 @@ export default function SignUpPage() {
           </div>
         </motion.div>
 
-        {/* RIGHT SECTION - Form */}
+        {}
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -351,7 +351,7 @@ export default function SignUpPage() {
           className="w-full lg:w-[500px] flex items-center justify-center px-6 sm:px-8 py-12 lg:py-12"
         >
           <div className="w-full max-w-[400px]">
-            {/* Logo */}
+            {}
             <motion.div
   initial={{ opacity: 0, y: -20 }}
   animate={{ opacity: 1, y: 0 }}
@@ -388,7 +388,7 @@ export default function SignUpPage() {
               Start your journey for free
             </motion.p>
 
-            {/* Social Buttons */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -431,9 +431,9 @@ export default function SignUpPage() {
               <div className="flex-1 h-px bg-white/10" />
             </motion.div>
 
-            {/* Form */}
+            {}
             <form onSubmit={handleSignUp} className="space-y-4">
-              {/* Full name with avatar */}
+              {}
               <div>
                 <label className="block text-xs sm:text-sm text-white/45 mb-2 font-medium tracking-wide">
                   Full name
@@ -468,7 +468,7 @@ export default function SignUpPage() {
                     />
                   </div>
                   
-                  {/* Avatar button */}
+                  {}
                   <motion.button
                     type="button"
                     onClick={() => setIsAvatarOpen(true)}
@@ -494,7 +494,7 @@ export default function SignUpPage() {
                 </span>
               </div>
 
-              {/* Email */}
+              {}
               <div>
                 <label className="block text-xs sm:text-sm text-white/45 mb-2 font-medium tracking-wide">
                   Email address
@@ -530,7 +530,7 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              {/* Password */}
+              {}
               <div>
                 <label className="block text-xs sm:text-sm text-white/45 mb-2 font-medium tracking-wide">
                   Password

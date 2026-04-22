@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import { updateAvatar } from "@/utils/db/db-operations/change-pass/update";
 
 interface UpdateAvatarRequest {
-  userId: string;    // must be the UUID of the user
-  avatarUrl: string; // must be a valid avatar URL
+  userId: string;    
+  avatarUrl: string; 
 }
 
 export async function POST(req:Request) {

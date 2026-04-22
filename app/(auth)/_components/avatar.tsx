@@ -69,7 +69,7 @@ export default function AvatarSelector({
             : "opacity-0 translate-y-4 scale-[0.97]"
         }`}
       >
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between px-7 pt-6 pb-5 border-b border-white/[0.06] shrink-0">
           <div>
             <p className="text-[11px] font-medium tracking-widest uppercase text-white/30 mb-1">
@@ -87,7 +87,7 @@ export default function AvatarSelector({
           </button>
         </div>
 
-        {/* Style tabs */}
+        {}
         <div className="px-7 pt-4 shrink-0">
           <div className="flex gap-1.5 overflow-x-auto pb-4 [scrollbar-width:none]">
             {styles.map((s) => (
@@ -106,7 +106,7 @@ export default function AvatarSelector({
           </div>
         </div>
 
-        {/* Grid */}
+        {}
         <div className="px-7 pb-7 overflow-y-auto grow">
           <p className="text-[12px] text-white/25 mb-3.5 tracking-wide">
             {seeds.length} options · {activeStyleObj.name}
@@ -134,10 +134,10 @@ export default function AvatarSelector({
                       : "border border-white/[0.06] hover:border-white/20"
                   }`}
                 >
-                  {/* Tinted bg wash */}
+                  {}
                   <div className={`absolute inset-0 ${bgClass} opacity-15`} />
 
-                  {/* Avatar circle + label */}
+                  {}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <div
                       className={`w-[60%] h-[60%] rounded-full ${bgClass} flex items-center justify-center`}
@@ -153,7 +153,7 @@ export default function AvatarSelector({
                     </span>
                   </div>
 
-                  {/* Selected checkmark badge */}
+                  {}
                   {isSelected && (
                     <div className="absolute top-2 right-2 w-5 h-5 rounded-md bg-white/90 flex items-center justify-center z-10">
                       <svg width="10" height="8" viewBox="0 0 10 8" fill="none">

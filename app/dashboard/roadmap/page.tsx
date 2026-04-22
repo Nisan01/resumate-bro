@@ -112,7 +112,7 @@ const generate = async (val?: string) => {
 
     const data = await res.json();
 
-    // 👇 IMPORTANT: add accent colors (your UI needs this)
+    
     const colored = addAccents(data);
     setLoading(false);
     setRoadmap(colored);
@@ -136,11 +136,11 @@ const generate = async (val?: string) => {
 
   return (
     <div className="relative min-h-screen mb-1  text-white">
-      {/* Ambient orbs */}
+      {}
       <div className="pointer-events-none fixed top-0 left-1/4 w-96 h-96 rounded-full bg-purple-700/10 blur-[140px]" />
       <div className="pointer-events-none fixed bottom-0 right-1/4 w-80 h-80 rounded-full bg-blue-700/10 blur-[120px]" />
 
-      {/* Grid texture */}
+      {}
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.03]"
         style={{
@@ -151,9 +151,9 @@ const generate = async (val?: string) => {
 
      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6">
 
-        {/* ── HEADER — mirrors SkillsTracker ── */}
+        {}
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          {/* Left: icon + title + subtitle */}
+          {}
           <div>
             <div className="flex items-center gap-2.5 mb-1">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500/30 to-blue-500/20 border border-purple-500/30 flex items-center justify-center">
@@ -168,9 +168,9 @@ const generate = async (val?: string) => {
             </p>
           </div>
 
-          {/* Right: search input + Generate button + Reset */}
+          {}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            {/* Search field */}
+            {}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25" />
               <input
@@ -182,7 +182,7 @@ const generate = async (val?: string) => {
               />
             </div>
 
-            {/* Generate button — mirrors "Add Skill" */}
+            {}
             <button
               onClick={() => generate()}
               disabled={!input.trim()}
@@ -192,7 +192,7 @@ const generate = async (val?: string) => {
              {loading?"Generating...":"Generate"} 
             </button>
 
-            {/* Reset — only when roadmap exists */}
+            {}
             {roadmap && (
               <button
                 onClick={reset}
@@ -218,7 +218,7 @@ const generate = async (val?: string) => {
           <div className="flex flex-col gap-10">
             {roadmap.phases.map((phase, pi) => (
               <div key={pi}>
-                {/* Phase header */}
+                {}
                 <div className="mb-5">
                   <p className="text-[10px] font-bold tracking-[0.14em] uppercase mb-1" style={{ color: phase.accent }}>
                     {phase.label} · {phase.dur}
@@ -227,7 +227,7 @@ const generate = async (val?: string) => {
                   <p className="text-[10px] text-white/25 mt-0.5">{phase.nodes.length} skills</p>
                 </div>
 
-                {/* Cards */}
+                {}
                 <div className="flex flex-wrap justify-center gap-4">
                   {phase.nodes.map((node) => (
                     <NodeCard key={node.title} node={node} accent={phase.accent} />
@@ -240,7 +240,7 @@ const generate = async (val?: string) => {
               </div>
             ))}
 
-            {/* Legend */}
+            {}
             <div className="flex flex-wrap items-center gap-4 pt-2 pb-4">
               {Object.entries(PRIORITY_CONFIG).map(([, v]) => (
                 <div key={v.label} className="flex items-center gap-1.5">

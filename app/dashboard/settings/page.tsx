@@ -21,7 +21,7 @@ function calculatePrice(tokens: number): number {
   return parseFloat(price.toFixed(2));
 }
 
-// ── Modal ──────────────────────────────────────────────────────────────────────
+
 function Modal({
   open, onClose, children, danger = false,
 }: {
@@ -49,7 +49,7 @@ function Modal({
   );
 }
 
-// ── Buttons ────────────────────────────────────────────────────────────────────
+
 function BtnGhost({ children, onClick, sm, disabled }: {
   children: React.ReactNode; onClick?: () => void; sm?: boolean; disabled?: boolean;
 }) {
@@ -110,7 +110,7 @@ function BtnGrad({ children, onClick, disabled }: {
   );
 }
 
-// ── Section Card ───────────────────────────────────────────────────────────────
+
 function SectionCard({ icon, label, desc, children, danger = false }: {
   icon: React.ReactNode; label: string; desc: string; children: React.ReactNode; danger?: boolean;
 }) {
@@ -147,7 +147,7 @@ function SectionCard({ icon, label, desc, children, danger = false }: {
   );
 }
 
-// ── Data Row ───────────────────────────────────────────────────────────────────
+
 function DataRow({ title, desc, children, last = false, danger = false }: {
   title: string; desc?: string; children?: React.ReactNode; last?: boolean; danger?: boolean;
 }) {
@@ -178,7 +178,7 @@ function DataRow({ title, desc, children, last = false, danger = false }: {
   );
 }
 
-// ── Usage Stat Card ────────────────────────────────────────────────────────────
+
 function UsageStatCard({ icon, label, value, sub, accent = false }: {
   icon: React.ReactNode; label: string; value: React.ReactNode; sub: string; accent?: boolean;
 }) {
@@ -234,7 +234,7 @@ function UsageStatCard({ icon, label, value, sub, accent = false }: {
   );
 }
 
-// ── Main Component ─────────────────────────────────────────────────────────────
+
 export default function AccountPage() {
   const { user, logout } = useUser();
   const [modals, setModals] = useState<Record<string, boolean>>({});
@@ -265,12 +265,17 @@ export default function AccountPage() {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        const [tokenRes, countRes] = await Promise.all([
-          fetch("/api/get-user-tokens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: user.id }) }),
-          fetch("/api/get-resume-count", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: user.id }) }),
-        ]);
-        setTokens(await tokenRes.json());
-        setCount(await countRes.json());
+
+        const res=await fetch("/api/dashboard/stats", 
+          { method: "POST", headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ userId: user.id }) });
+
+        if (!res.ok) throw new Error("Failed to fetch stats");
+
+        const{ tokens: tokenRes, resumeCount: countRes } = await res.json();
+       
+        setTokens(tokenRes);
+        setCount({ resumeCount: countRes });
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -391,7 +396,7 @@ export default function AccountPage() {
         .account-page { animation: fadeInUp 0.45s ease both; }
       `}</style>
 
-      {/* Background */}
+      {}
       <div
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
@@ -416,7 +421,7 @@ export default function AccountPage() {
         className="account-page relative z-10 w-full max-w-7xl mx-auto px-3 sm:px-5 pb-20"
         style={{ paddingTop: 24, fontFamily: "inherit" }}
       >
-        {/* ── Page Header ── */}
+        {}
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
           <div
             className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
@@ -445,23 +450,24 @@ export default function AccountPage() {
 
         <div className="flex flex-col gap-4">
 
-          {/* ── Profile + Plan ── */}
+          {}
           <div
             className="relative overflow-hidden rounded-2xl p-4 sm:p-6"
             style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(255,255,255,0.07)", backdropFilter: "blur(40px)" }}
           >
-            {/* Mobile: stacked, Desktop: side by side */}
+            {}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
 
-              {/* Avatar + Info */}
+              {}
               <div className="flex gap-3 sm:gap-4 items-center">
                 <div className="p-1.5 sm:p-2 rounded bg-purple-400 flex-shrink-0">
                   <Image
-                    src={avatarSrc || user?.avatarUrl || `https://api.dicebear.com/9.x/pixel-art/svg?seed=${user?.name || "User"}`}
+                    src={avatarSrc || user?.avatarUrl || `https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(user?.name || user?.email || "user")}`}
                     alt={user?.name || "User"}
                     width={40}
                     height={40}
                     className="rounded-full object-cover w-9 h-9 sm:w-11 sm:h-11"
+                    priority
                   />
                 </div>
                 <div>
@@ -483,7 +489,7 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              {/* Plan — left-aligned on mobile, right on desktop */}
+              {}
               <div className="sm:text-right flex-shrink-0">
                 <div className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: "rgba(220,215,255,0.45)" }}>
                   Current Plan
@@ -506,7 +512,7 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* ── Career Target ── */}
+          {}
           <SectionCard
             label="Career Target"
             desc="Your job search focus — used to personalize AI suggestions"
@@ -535,7 +541,7 @@ export default function AccountPage() {
             </DataRow>
           </SectionCard>
 
-          {/* ── Usage ── */}
+          {}
           <SectionCard
             label="Usage This Month"
             desc="Your activity at a glance"
@@ -545,12 +551,12 @@ export default function AccountPage() {
               </svg>
             }
           >
-            {/* Stack on very small screens, side by side otherwise */}
+            {}
             <div className="flex flex-col xs:flex-row gap-3">
               <UsageStatCard
                 icon={<svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>}
                 label="Resume Generations"
-                value={loading ? <Spinner className="size-6" /> : String(count.resumeCount)}
+                value={loading ? <Spinner className="size-6" /> : String(count.resumeCount || 0)}
                 sub="Resumes generated total"
               />
               <UsageStatCard
@@ -563,7 +569,7 @@ export default function AccountPage() {
             </div>
           </SectionCard>
 
-          {/* ── Data & Privacy ── */}
+          {}
           <SectionCard
             label="Data & Privacy"
             desc="Download your complete account archive"
@@ -576,12 +582,12 @@ export default function AccountPage() {
             <DataRow last title="Export All Data" desc="Download a ZIP containing your resumes, analyses, projects, skills, roadmap progress, practice sessions, account info and all settings.">
               <BtnGhost sm onClick={handleExportData} disabled={loadingExport}>
                 {loadingExport ? <Spinner /> : <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>}
-                {loadingExport ? "Exporting…" : "Export ZIP"}
+                {loadingExport ? "Exporting…" : "Export pdf report"}
               </BtnGhost>
             </DataRow>
           </SectionCard>
 
-          {/* ── Security ── */}
+          {}
           <SectionCard
             label="Security"
             desc="Password and avatar"
@@ -607,7 +613,7 @@ export default function AccountPage() {
             </DataRow>
           </SectionCard>
 
-          {/* ── Danger Zone ── */}
+          {}
           <SectionCard
             danger
             label="Danger Zone"
@@ -640,7 +646,7 @@ export default function AccountPage() {
         </div>
       </div>
 
-      {/* ── Modal: Password ── */}
+      {}
       <Modal open={!!modals.password} onClose={() => closeModal("password")}>
         <div className="text-base font-bold mb-1.5" style={{ color: "#f0eeff" }}>Change Password</div>
         <p className="text-xs mb-5" style={{ color: "rgba(220,215,255,0.45)" }}>Choose a strong password with at least 8 characters.</p>
@@ -670,7 +676,7 @@ export default function AccountPage() {
         </div>
       </Modal>
 
-      {/* ── Modal: Reset ── */}
+      {}
       <Modal open={!!modals.reset} onClose={() => closeModal("reset")} danger>
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: "rgba(255,107,107,0.12)", border: "1px solid rgba(255,107,107,0.30)", color: "#ff6b6b" }}>
           <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -692,7 +698,7 @@ export default function AccountPage() {
         </div>
       </Modal>
 
-      {/* ── Modal: Delete ── */}
+      {}
       <Modal open={!!modals.delete} onClose={() => closeModal("delete")} danger>
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: "rgba(255,107,107,0.12)", border: "1px solid rgba(255,107,107,0.30)", color: "#ff6b6b" }}>
           <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -737,3 +743,10 @@ export default function AccountPage() {
     </>
   );
 }
+
+
+
+
+
+
+

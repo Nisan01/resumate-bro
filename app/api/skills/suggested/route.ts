@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSuggestedSkills } from "@/utils/db/db-operations/skills-operations/skills";
  
-// GET /api/skills/suggested?userId=xxx
+
 export async function GET(req: NextRequest) {
   try {
     const userId = req.nextUrl.searchParams.get("userId");

@@ -13,6 +13,24 @@ export const createUser = async (userData: {
   return newUser; 
 };
 
+
+export async function createUserFromGoogle(data: {
+  email: string;
+  name: string;
+  avatarUrl?: string;
+}) {
+
+  const [user] = await db.insert(users).values({
+    email: data.email,
+    name: data.name,
+    password: null, 
+    avatarUrl: data.avatarUrl ?? null,
+  }).returning();
+  return user;
+}
+
+
+
 export const getUserByEmail = async (email: string) => {
   const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return user;

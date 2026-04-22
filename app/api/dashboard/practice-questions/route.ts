@@ -5,9 +5,6 @@ import type { InterviewDifficulty } from "@/lib/resume-profile";
 
 const GROQ_TIMEOUT_MS = 10000;
 
-// ---------------------------------------------------------------------------
-// Auth helper
-// ---------------------------------------------------------------------------
 
 async function getAuthEmail(): Promise<string | null> {
   const cookieStore = await cookies();
@@ -21,9 +18,9 @@ async function getAuthEmail(): Promise<string | null> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+
+
+
 
 export interface PracticeQuestionItem {
   id: string;
@@ -32,9 +29,9 @@ export interface PracticeQuestionItem {
   focusArea: string;
 }
 
-// ---------------------------------------------------------------------------
-// Build prompt from target role + difficulty
-// ---------------------------------------------------------------------------
+
+
+
 
 function buildPrompt(
   targetRole: string,
@@ -73,10 +70,10 @@ JSON format MUST exactly match this structure:
 }`;
 }
 
-// ---------------------------------------------------------------------------
-// GET  — auth check
-// POST — generate questions from target role using Groq
-// ---------------------------------------------------------------------------
+
+
+
+
 
 export async function GET() {
   const email = await getAuthEmail();
@@ -102,7 +99,7 @@ export async function POST(req: NextRequest) {
 
     const { targetRole, difficulty, count = 5, offset = 0 } = body;
 
-    // Validate inputs
+    
     if (!targetRole || targetRole.trim().length < 2) {
       return NextResponse.json(
         { error: "Please enter your target role before generating questions." },
@@ -133,7 +130,7 @@ export async function POST(req: NextRequest) {
 
     const prompt = buildPrompt(targetRole.trim(), difficulty, safeCount, safeOffset);
 
-    // Call Groq endpoint
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
 
@@ -147,7 +144,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama-3.1-8b-instant", // Recommended fast model
+          model: "llama-3.1-8b-instant", 
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           temperature: 0.7,
@@ -178,7 +175,7 @@ export async function POST(req: NextRequest) {
       throw new Error("Invalid response missing content from Groq.");
     }
 
-    // Parse the generated JSON object
+    
     const parsedData = JSON.parse(content) as { questions: PracticeQuestionItem[] };
     let questions = parsedData.questions || [];
 
@@ -186,7 +183,7 @@ export async function POST(req: NextRequest) {
       throw new Error("AI returned no questions. Please try again.");
     }
 
-    // Assign fallback IDs and sanitize text
+    
     questions = questions.map((q, i) => ({
       id: q.id || `q_${safeOffset}_${i}`,
       question: (q.question || "").trim() || "Question unavailable",

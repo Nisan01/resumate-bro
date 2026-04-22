@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createProject, getProjectsByUser } from "@/utils/db/db-operations/projects/projects";
 
-// ── GET /api/projects/save-projects?userId=xxx ──
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);

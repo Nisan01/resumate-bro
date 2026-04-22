@@ -8,7 +8,7 @@
   --accent3: #7ee8fa;
 }
 
-/* Fixed ambient gradient layer */
+
 .dashboard-bg-gradient {
   position: fixed;
   inset: 0;
@@ -21,7 +21,7 @@
   z-index: 0;
 }
 
-/* Noise texture overlay */
+
 .dashboard-bg-noise {
   position: fixed;
   inset: 0;
@@ -31,7 +31,7 @@
   z-index: 0;
 }
 
-/* Floating orbs layer */
+
 .dashboard-orb-layer {
   position: fixed;
   inset: 0;
@@ -84,7 +84,7 @@
   100% { transform: translateY(0)     translateX(0)     rotate(360deg); }
 }
 
-/* Sidebar panel */
+
 .dashboard-sidebar {
   height: 100%;
   flex-shrink: 0;

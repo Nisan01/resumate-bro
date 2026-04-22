@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const rawContent = data.choices?.[0]?.message?.content || '{}';
 console.log("AI raw response:", data);
 console.log("Raw content extracted:", rawContent);
-    // Clean markdown and parse
+    
     const cleanedJson = JSON.parse(rawContent.replace(/```json|```/g, '').trim());
     console.log("Cleaned JSON:", cleanedJson);
     return NextResponse.json(cleanedJson);
