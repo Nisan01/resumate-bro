@@ -1,12 +1,16 @@
 
-import { db } from "@/index";
+import { getDb } from "@/index";
 import { userSkills, NewUserSkill } from "@/utils/db/schema/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray,InferSelectModel } from "drizzle-orm";
+
+type UserSkill = InferSelectModel<typeof userSkills>;
 
 export async function getUserSkills(
   userId: string,
   sourceFilter?: ("resume" | "manual" | "suggested")[]
-) {
+): Promise<UserSkill[]>  {
+  const db = getDb();
+
   if (sourceFilter && sourceFilter.length > 0) {
     return await db
       .select()
@@ -30,6 +34,7 @@ export async function addUserSkill(data: {
   notes?: string;
   meta?: Record<string, any>;
 }) {
+    const db = getDb();
   const [skill] = await db
     .insert(userSkills)
     .values({
@@ -55,6 +60,8 @@ export async function updateUserSkill(
     meta: Record<string, any>;
   }>
 ) {
+    const db = getDb();
+
   const [updated] = await db
     .update(userSkills)
     .set({ ...data, updatedAt: new Date() })
@@ -64,19 +71,25 @@ export async function updateUserSkill(
 }
 
 export async function deleteUserSkill(id: string) {
+    const db = getDb();
+
   await db.delete(userSkills).where(eq(userSkills.id, id));
 }
 
 export async function clearUserSkills(
   userId: string,
   source: "resume" | "manual" | "suggested"
-) {
+)
+{
+  const db = getDb();
   await db
     .delete(userSkills)
     .where(and(eq(userSkills.userId, userId), eq(userSkills.source, source)));
 }
 
 export async function saveResumeSkills(userId: string, skillsArray: string[]) {
+  const db = getDb();
+
   await clearUserSkills(userId, "resume");
   if (skillsArray.length === 0) return [];
 
@@ -110,7 +123,7 @@ export async function saveSuggestedSkills(
     category: "technical" | "soft" | "tool";
   }[],
   industry: string
-) {
+) {  const db = getDb();
   await clearUserSkills(userId, "suggested");
   if (suggestedArray.length === 0) return [];
 
@@ -128,6 +141,7 @@ export async function saveSuggestedSkills(
 }
 
 export async function getSuggestedSkills(userId: string) {
+  const db = getDb();
   return await db
     .select()
     .from(userSkills)

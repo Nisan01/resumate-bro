@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
                 messages: [
                   {
                     role: 'user',
-                    content: analyzeDeepPrompt(text, targetRole, atsRulesJSON),
+                    content: analyzeDeepPrompt(text, targetRole),
                   },
                 ],
               }),

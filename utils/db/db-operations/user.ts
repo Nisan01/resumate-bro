@@ -1,6 +1,7 @@
-import { db } from "../../../index"; 
+import { getDb } from "../../../index"; 
 import { resumes, users,projects,resumeAnalyses } from "../schema/schema";
 import { eq } from "drizzle-orm";
+
 
 export const createUser = async (userData: {
   email: string;
@@ -9,6 +10,8 @@ export const createUser = async (userData: {
   avatarUrl?: string | null;
 
 }) => {
+  const db = getDb();
+
   const [newUser] = await db.insert(users).values(userData).returning();
   return newUser; 
 };
@@ -19,6 +22,8 @@ export async function createUserFromGoogle(data: {
   name: string;
   avatarUrl?: string;
 }) {
+  const db = getDb();
+
 
   const [user] = await db.insert(users).values({
     email: data.email,
@@ -32,6 +37,8 @@ export async function createUserFromGoogle(data: {
 
 
 export const getUserByEmail = async (email: string) => {
+  const db = getDb();
+
   const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return user;
 };
@@ -46,6 +53,8 @@ export const updateTargetsProfile = async (
   }
 ) => {
   try {
+    const db = getDb();
+
     const updateFields: Partial<{
       targetRole: string;
       targetIndustry: string;
@@ -122,6 +131,7 @@ export const updateTargetsProfile = async (
 
 
 export const deleteAccount = async (userId: string) => {
+  const db = getDb();
   try {
     await db.delete(projects).where(eq(projects.userId, userId));
 

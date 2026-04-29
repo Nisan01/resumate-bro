@@ -1,4 +1,4 @@
-import { db } from "@/index"; 
+import { getDb } from "@/index"; 
 import { users } from "../../schema/schema";
 import { eq } from "drizzle-orm";
 
@@ -7,6 +7,8 @@ export const updateUserPassword = async (userData: {
   newPassword: string;
   userId: string;
 }): Promise<{ success: boolean; message: string }> => {
+  const db = getDb();
+
   const { userId, currentPassword, newPassword } = userData;
 
   const [user] = await db
@@ -38,6 +40,8 @@ export const updateUserPassword = async (userData: {
 
 
 export const updateAvatar=async (userId:string, avatarUrl:string):Promise<{ success: boolean; message: string }>=>{
+    const db = getDb();
+
   const [user] = await db
     .select()
     .from(users)

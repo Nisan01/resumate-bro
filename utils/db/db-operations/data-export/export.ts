@@ -1,8 +1,9 @@
-import { db } from "@/index";
+import { getDb } from "@/index";
 import { users, resumes, resumeAnalyses, projects } from "../../schema/schema";
 import { eq } from "drizzle-orm";
 
 export const exportUserData = async (userId: string) => {
+   const db = getDb();
   const [user] = await db
     .select({
       id: users.id,
@@ -33,17 +34,14 @@ export const exportUserData = async (userId: string) => {
         .from(resumeAnalyses)
         .where(eq(resumeAnalyses.resumeId, res.id));
 
-      // Normalize each row so the PDF renderer always finds analysis data
-      // under `analysisResult`. The actual JSON blob lives in `rawJsonFeedback`;
-      // `totalTokensUsed` is a separate integer column on the same row.
       const normalizedAnalyses = analyses.map((a) => ({
         ...a,
         analysisResult: {
-          // Spread the full JSON feedback blob
+    
           ...(typeof a.rawJsonFeedback === "object" && a.rawJsonFeedback !== null
             ? (a.rawJsonFeedback as Record<string, unknown>)
             : {}),
-          // Inject the token count so the PDF can read it from one place
+      
           totalTokensUsed: { count: a.totalTokensUsed ?? 0 },
         },
       }));
@@ -52,8 +50,6 @@ export const exportUserData = async (userId: string) => {
     })
   );
 
-  // Use the parsed resume header name when available so the PDF cover
-  // shows the full name instead of the short account display name.
   const firstAnalysisResult =
     (resumesWithAnalyses[0]?.analyses?.[0]?.analysisResult as any) ?? {};
   const resumeName: string =

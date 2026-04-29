@@ -1,9 +1,8 @@
-import { db } from "@/index";
+import { getDb } from "@/index";
 import { projects } from "../../schema/schema";
 import { v4 as uuidv4 } from "uuid";
 import { eq } from "drizzle-orm";
 import { count } from "drizzle-orm";
-
 
 export const createProject = async (projectData: {
   userId: string;
@@ -15,6 +14,8 @@ export const createProject = async (projectData: {
   steps?: string[];
   progress?: number;
 }) => {
+  const db = getDb();
+
   const [newProject] = await db
     .insert(projects)
     .values({
@@ -34,6 +35,8 @@ export const createProject = async (projectData: {
 };
 
 export const getProjectsByUser = async (userId: string) => {
+  const db = getDb();
+
   const userProjects = await db
     .select()
     .from(projects)
@@ -44,6 +47,7 @@ export const getProjectsByUser = async (userId: string) => {
 
 
 export const getProjectsCountByUser = async (userId: string) => {
+  const db = getDb();
   const result = await db
     .select({ count: count() })
     .from(projects)

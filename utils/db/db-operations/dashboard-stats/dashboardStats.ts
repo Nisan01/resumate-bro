@@ -1,5 +1,5 @@
 
-import { db } from "@/index"; 
+import { getDb } from "@/index"; 
 import { resumeAnalyses, users } from "../../schema/schema";
 import { eq } from "drizzle-orm";
 import { resumes } from "../../schema/schema";
@@ -8,8 +8,9 @@ import { sql } from "drizzle-orm";
 import { desc } from "drizzle-orm";         
 
 
-
 export async function getDashboardStats(userId: string) {
+  const db = getDb();
+
   const [userData, resumeCountResult, projectsResult] = await Promise.all([
     db.select({
       totalSkillTokens: users.totalSkillTokens,

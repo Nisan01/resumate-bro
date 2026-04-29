@@ -208,7 +208,6 @@ export function PracticeQuestionsView() {
           </div>
         )}
 
-        {/* ── Active Session ── */}
         {sessionActive && currentQuestion && (
           <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
@@ -238,66 +237,68 @@ export function PracticeQuestionsView() {
             </div>
 
             {/* Flashcard */}
-            <div className="perspective-1000 relative mx-auto h-[420px] sm:h-[380px]">
-              <div className={`transform-style-3d relative w-full h-full transition-transform duration-700 ${isFlipped ? "rotate-y-180" : ""}`}>
+ {/* Flashcard */}
+<div className="relative mx-auto h-[420px] sm:h-[380px]">
+  
+  {/* Front — Question */}
+  <div
+    className={`absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 shadow-2xl cursor-pointer group overflow-hidden transition-all duration-300 ${
+      isFlipped ? "opacity-0 pointer-events-none scale-95" : "opacity-100 pointer-events-auto scale-100"
+    }`}
+    role="button"
+    tabIndex={isFlipped ? -1 : 0}
+    aria-label={`Show answer for: ${currentQuestion.question}`}
+    onClick={() => setIsFlipped(true)}
+    onKeyDown={(e) => onFlipKeyDown(e, true)}
+  >
+    <div className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full bg-violet-600/15 blur-[60px]" />
+    <div className="pointer-events-none absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-indigo-600/10 blur-[60px]" />
+    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
-                {/* Front — Question */}
-                <div
-                  className="backface-hidden absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 shadow-2xl cursor-pointer group overflow-hidden"
-                  role="button"
-                  tabIndex={isFlipped ? -1 : 0}
-                  aria-label={`Show answer for: ${currentQuestion.question}`}
-                  onClick={() => setIsFlipped(true)}
-                  onKeyDown={(e) => onFlipKeyDown(e, true)}
-                >
-                  {/* ambient */}
-                  <div className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full bg-violet-600/15 blur-[60px]" />
-                  <div className="pointer-events-none absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-indigo-600/10 blur-[60px]" />
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+    <div className="relative flex flex-col items-center gap-5">
+      <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-violet-300">
+        <Zap className="w-2.5 h-2.5" /> Question
+      </span>
+      <h3 className="text-center text-xl sm:text-2xl font-semibold text-white leading-relaxed max-w-xl">
+        {currentQuestion.question}
+      </h3>
+    </div>
+    <p className="absolute bottom-6 text-[11px] text-white/20 animate-pulse tracking-wider">
+      Click to reveal answer →
+    </p>
+  </div>
 
-                  <div className="relative flex flex-col items-center gap-5">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-violet-300">
-                      <Zap className="w-2.5 h-2.5" /> Question
-                    </span>
-                    <h3 className="text-center text-xl sm:text-2xl font-semibold text-white leading-relaxed max-w-xl">
-                      {currentQuestion.question}
-                    </h3>
-                  </div>
-                  <p className="absolute bottom-6 text-[11px] text-white/20 animate-pulse tracking-wider">
-                    Click to reveal answer →
-                  </p>
-                </div>
+  {/* Back — Answer */}
+  <div
+    className={`absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 shadow-2xl cursor-pointer overflow-hidden transition-all duration-300 ${
+      isFlipped ? "opacity-100 pointer-events-auto scale-100" : "opacity-0 pointer-events-none scale-95"
+    }`}
+    role="button"
+    tabIndex={isFlipped ? 0 : -1}
+    aria-label="Show question"
+    onClick={() => setIsFlipped(false)}
+    onKeyDown={(e) => onFlipKeyDown(e, false)}
+  >
+    <div className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 rounded-full bg-emerald-600/15 blur-[60px]" />
+    <div className="pointer-events-none absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-teal-600/10 blur-[60px]" />
+    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
 
-                {/* Back — Answer */}
-                <div
-                  className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-8 shadow-2xl cursor-pointer overflow-hidden"
-                  role="button"
-                  tabIndex={isFlipped ? 0 : -1}
-                  aria-label="Show question"
-                  onClick={() => setIsFlipped(false)}
-                  onKeyDown={(e) => onFlipKeyDown(e, false)}
-                >
-                  <div className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 rounded-full bg-emerald-600/15 blur-[60px]" />
-                  <div className="pointer-events-none absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-teal-600/10 blur-[60px]" />
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
-
-                  <div className="relative flex flex-col items-center gap-5 max-w-xl w-full">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
-                      <CheckCircle2 className="w-2.5 h-2.5" /> Model Answer
-                    </span>
-                    <p className="text-center text-base sm:text-lg text-white/80 leading-relaxed max-h-[220px] overflow-auto scrollbar-thin">
-                      {currentQuestion.answer}
-                    </p>
-                    <div className="mt-2">
-                      <StatusBadge tone="success">Focus: {currentQuestion.focusArea}</StatusBadge>
-                    </div>
-                  </div>
-                  <p className="absolute bottom-6 text-[11px] text-white/20 tracking-wider">
-                    ← Click to go back
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div className="relative flex flex-col items-center gap-5 max-w-xl w-full">
+      <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
+        <CheckCircle2 className="w-2.5 h-2.5" /> Model Answer
+      </span>
+      <p className="text-center text-base sm:text-lg text-white/80 leading-relaxed max-h-[220px] overflow-auto scrollbar-thin">
+        {currentQuestion.answer}
+      </p>
+      <div className="mt-2">
+        <StatusBadge tone="success">Focus: {currentQuestion.focusArea}</StatusBadge>
+      </div>
+    </div>
+    <p className="absolute bottom-6 text-[11px] text-white/20 tracking-wider">
+      ← Click to go back
+    </p>
+  </div>
+</div>
 
             {/* Navigation */}
             <div className="flex items-center justify-center gap-3">
@@ -351,13 +352,9 @@ export function PracticeQuestionsView() {
           </div>
         )}
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        .perspective-1000 { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-      `}} />
+<style dangerouslySetInnerHTML={{ __html: `
+  .perspective-1000 { perspective: 1000px; }
+`}} />
     </DashboardPageShell>
   );
 }

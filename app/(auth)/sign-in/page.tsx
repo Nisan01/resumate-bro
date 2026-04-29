@@ -30,7 +30,7 @@ export default function SignInPage() {
   return (
     <div className="relative min-h-screen bg-[#080b12] text-[#f0eeff] overflow-x-hidden font-['Soria',-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif]">
 
-      {}
+      
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -47,18 +47,17 @@ export default function SignInPage() {
         }}
       />
 
-      {}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.5 }}
         transition={{ duration: 1 }}
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http:
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='100' cy='100' r='100' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E")`
         }}
       />
 
-      {}
+      
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         {[
           { width: 340, height: 340, top: -80, right: "8%", duration: 22, opacity: 0.55, delay: 0 },
@@ -381,7 +380,7 @@ export default function SignInPage() {
               Sign in to continue your journey
             </motion.p>
 
-            {}
+            
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -554,8 +553,7 @@ export default function SignInPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
               className="text-center text-xs sm:text-sm text-white/45 mt-6"
-            >
-              Don't have an account?{" "}
+            >{"Don't have an account?"}
               <motion.span
                 whileHover={{ scale: 1.05, x: 2 }}
                 whileTap={{ scale: 0.98 }}

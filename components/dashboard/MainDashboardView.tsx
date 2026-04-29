@@ -19,7 +19,15 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-const todayFocus = [
+
+type TaskStatus = "Now" | "Queued" | "Done";
+type Severity = "High" | "Medium" | "Low";
+
+const todayFocus : {
+  task: string;
+  eta: string;
+  status: TaskStatus;
+}[]= [
   {
     task: "Tune resume summary for Frontend Engineer role",
     eta: "25 min",
@@ -43,7 +51,11 @@ const skillMomentum = [
   { label: "Behavioral Storytelling", value: 71, note: "Good interview readiness", tone: "cyan" as const },
 ];
 
-const resumeSignals = [
+const resumeSignals: {
+  signal: string;
+  severity: Severity;
+  action: string;
+}[]  = [
   {
     signal: "Quantified achievements are missing in 2 recent projects",
     severity: "High",

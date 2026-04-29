@@ -1,8 +1,12 @@
-import { db } from "@/index";
+import { getDb } from "@/index";
 import { resumes, resumeAnalyses } from "../../schema/schema";
 import { eq, desc } from "drizzle-orm";
 
+
+
 export const getLatestResumes = async (userId: string) => {
+  const db = getDb();
+
   const data = await db
     .select({
       id: resumes.id,

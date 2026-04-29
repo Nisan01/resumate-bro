@@ -1,7 +1,8 @@
-import { db } from "@/index";
+import { getDb } from "@/index";
 import { resumes, resumeAnalyses } from "@/utils/db/schema/schema";
 
 function computeOverallScore(aiData: any): number {
+
   const raw = [
     aiData?.contactInfo?.overall_score,
     aiData?.summary?.overall_score,
@@ -16,6 +17,8 @@ function computeOverallScore(aiData: any): number {
 }
 
 export const saveAiAnalysisResult = async (userId: string, aiData: any, totalTokensUsed: number,filename: string) => {
+    const db = getDb();
+
   console.log("💾 Saving with tokens:", totalTokensUsed);
 
   const [newResume] = await db.insert(resumes).values({

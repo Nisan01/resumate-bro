@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserSkills, saveSuggestedSkills } from "@/utils/db/db-operations/skills-operations/skills";
 import { analyzeIndustryPrompt } from "@/app/dashboard/skills-tracker/_components/prompts/prompts";
 
-  import { db } from "@/index";
+  import { getDb } from "@/index";
   import { users } from "@/utils/db/schema/schema";
   import { eq } from "drizzle-orm";
 import { saveSkillsTokens } from "@/utils/db/db-operations/user-tokens/SaveTokens";
 
   export async function POST(req: NextRequest) {
+    const db = getDb();
+
     try {
       const body = await req.json();
       const { userId, industry } = body;

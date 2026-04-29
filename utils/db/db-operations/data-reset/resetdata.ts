@@ -1,9 +1,10 @@
-import { db } from "@/index";
+import { getDb } from "@/index";
 import { resumes, projects,userSkills } from "../../schema/schema";
 import { eq } from "drizzle-orm";
 
-
 export const resetUserData = async (userId: string) => {
+  const db = getDb();
+
   try {
     // 1. Delete all projects associated with the user
     await db
