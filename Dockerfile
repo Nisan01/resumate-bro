@@ -32,7 +32,7 @@ CMD ["node", "server.js"]
 
 # ── Development ──
 FROM base AS dev
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 ENV PORT=3000
 RUN npm install
 COPY . .
