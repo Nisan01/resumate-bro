@@ -1,0 +1,112 @@
+{
+  "ats_resume_guidelines_2026": {
+    "layout_and_structure": [
+      {
+        "id": 1,
+        "rule": "Use a Single-Column Layout",
+        "description": "Multi-column designs often cause the parser to read across the entire page, scrambling your skills with your work history."
+      },
+      {
+        "id": 2,
+        "rule": "Reverse-Chronological Order",
+        "description": "The gold standard for 2026. Start with your most recent role and work backward for reliable machine parsing."
+      },
+      {
+        "id": 3,
+        "rule": "Avoid Tables and Text Boxes",
+        "description": "Most ATS cannot 'see' inside text boxes or may read table cells out of order, leading to missing data."
+      },
+      {
+        "id": 4,
+        "rule": "Keep Contact Info in the Document Body",
+        "description": "Do not put contact details in the 'Header' or 'Footer' sections, as many systems ignore these areas."
+      },
+      {
+        "id": 5,
+        "rule": "Use Standard Section Headings",
+        "description": "Stick to 'Work Experience,' 'Education,' and 'Skills' to avoid confusing the system's categorization."
+      }
+    ],
+    "visuals_and_fonts": [
+      {
+        "id": 6,
+        "rule": "Stick to Web-Safe Fonts",
+        "description": "Use Arial, Calibri, Helvetica, Georgia, or Times New Roman to ensure proper rendering."
+      },
+      {
+        "id": 7,
+        "rule": "Standard Font Sizes",
+        "description": "Use 10–12pt for body text and 14–16pt for section headers."
+      },
+      {
+        "id": 8,
+        "rule": "Use Simple Bullets",
+        "description": "Stick to standard round dots or hyphens. Fancy icons can be misinterpreted as 'garbage code'."
+      },
+      {
+        "id": 9,
+        "rule": "No Images or Graphics",
+        "description": "Avoid headshots, logos, and charts as they provide zero parseable content to the ATS."
+      },
+      {
+        "id": 10,
+        "rule": "Eliminate Skill Progress Bars",
+        "description": "Machines cannot read graphics; use text-based labels like 'Expert' or 'Advanced' instead."
+      }
+    ],
+    "content_and_keywords": [
+      {
+        "id": 11,
+        "rule": "Mirror Job Description Keywords",
+        "description": "Use the exact phrasing from the job posting to ensure the parser matches your skills to the requirements."
+      },
+      {
+        "id": 12,
+        "rule": "Include Both Acronyms and Long-form",
+        "description": "Write 'Search Engine Optimization (SEO)' at least once so the machine catches both search terms."
+      },
+      {
+        "id": 13,
+        "rule": "Quantify Achievements",
+        "description": "Use numbers and metrics (e.g., 'Increased revenue by 20%') to provide evidence-based impact."
+      },
+      {
+        "id": 14,
+        "rule": "Use Action Verbs",
+        "description": "Start bullet points with strong verbs like 'Developed,' 'Managed,' or 'Optimized'."
+      },
+      {
+        "id": 15,
+        "rule": "Dedicated Skills Section",
+        "description": "Place a bulleted or comma-separated list of hard skills near the top to boost keyword relevance."
+      }
+    ],
+    "technical_specifics": [
+      {
+        "id": 16,
+        "rule": "Consistent Date Formatting",
+        "description": "Use MM/YYYY or Month YYYY consistently to avoid timeline parsing errors."
+      },
+      {
+        "id": 17,
+        "rule": "Appropriate File Format",
+        "description": "Use .docx or text-based PDF. Avoid saving the resume as an image (JPEG/PNG)."
+      },
+      {
+        "id": 18,
+        "rule": "Standard Margins",
+        "description": "Keep margins between 0.5 and 1.0 inch to prevent text from being cut off during conversion."
+      },
+      {
+        "id": 19,
+        "rule": "Professional File Naming",
+        "description": "Save as 'FirstName-LastName-JobTitle.pdf' for easy identification by recruiters."
+      },
+      {
+        "id": 20,
+        "rule": "The Notepad Test",
+        "description": "Paste your resume into a plain text editor; if the text is jumbled, the ATS will likely struggle too."
+      }
+    ]
+  }
+}

@@ -1,0 +1,95 @@
+.dashboard-root {
+  --bg:      #080b12;
+  --bg2:     #0d1020;
+  --bg3:     #111827;
+  --border:  rgba(255,255,255,0.08);
+  --accent1: #c4b0ff;
+  --accent2: #ff9de2;
+  --accent3: #7ee8fa;
+}
+
+
+.dashboard-bg-gradient {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 20%, rgba(90,60,180,0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 85% 10%, rgba(60,140,200,0.2)  0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 75% 85%, rgba(180,80,160,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 10% 80%, rgba(40,100,190,0.15) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+.dashboard-bg-noise {
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+
+.dashboard-orb-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.dashboard-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%,
+    rgba(255,255,255,0.55) 0%, rgba(196,176,255,0.35) 15%,
+    rgba(126,232,250,0.25) 35%, rgba(255,157,226,0.2) 55%,
+    rgba(8,11,18,0.1) 75%, transparent 100%);
+  box-shadow:
+    inset 0 0 30px rgba(255,255,255,0.12),
+    inset 2px 2px 12px rgba(255,255,255,0.25),
+    0 0 60px rgba(180,140,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  animation: dashDrift linear infinite;
+}
+
+.dashboard-orb::after {
+  content: '';
+  position: absolute;
+  top: 12%; left: 18%;
+  width: 30%; height: 18%;
+  background: rgba(255,255,255,0.35);
+  border-radius: 50%;
+  filter: blur(6px);
+  transform: rotate(-30deg);
+}
+
+.dashboard-orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#080b12, #080b12) padding-box,
+    linear-gradient(135deg, rgba(196,176,255,0.6), rgba(126,232,250,0.6), rgba(255,157,226,0.6)) border-box;
+  animation: dashDrift linear infinite;
+}
+
+@keyframes dashDrift {
+  0%   { transform: translateY(0)     translateX(0)     rotate(0deg);   }
+  25%  { transform: translateY(-30px) translateX(20px)  rotate(90deg);  }
+  50%  { transform: translateY(-15px) translateX(-15px) rotate(180deg); }
+  75%  { transform: translateY(-40px) translateX(10px)  rotate(270deg); }
+  100% { transform: translateY(0)     translateX(0)     rotate(360deg); }
+}
+
+
+.dashboard-sidebar {
+  height: 100%;
+  flex-shrink: 0;
+  isolation: isolate;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(16px);
+  z-index: 10;
+}
