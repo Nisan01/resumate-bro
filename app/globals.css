@@ -20,6 +20,10 @@
 .animate-fadeUp {
   animation: fadeUp 0.5s ease both;
 }
+html {
+--scroll-behavior: smooth!important;
+scroll-behavior: smooth!important;
+}
 
 
 @theme inline {
@@ -152,7 +156,4 @@
 button{
   cursor: pointer;
 }
-@layer utilities {
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-}
+

@@ -28,8 +28,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} 
-    >
+      className={`scroll-smooth ${geistSans.variable} ${geistMono.variable} h-full antialiased`} 
+     >
  
           <UserProvider>
   
