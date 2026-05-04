@@ -1,4 +1,4 @@
-# 🚀 Resumate Bro,AI-Powered Career Intelligence Platform
+# 🚀 Resumate Bro,AI-Powered Resume Analyzer Platform
 
 Resumate Bro is a full-stack AI-driven web application designed to help job seekers optimize their career journey. From resume analysis to interview preparation and personalized learning paths, the platform provides actionable insights powered by modern AI.
 
