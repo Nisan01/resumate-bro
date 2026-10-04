@@ -1,0 +1,80 @@
+name: Deploy Next.js App to AWS EC2
+
+on:
+  push:
+    branches:
+      - main  # Runs whenever code is pushed or merged to main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: 
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: 
+      - name: Create .env file for build
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+
+      # Step 3: 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 4: 
+      - name: Build and Push Docker Image
+        env:
+          APP_VERSION: "v2.0" 
+        run: |
+          # Build the image tagging both the custom version and 'latest'
+          docker build \
+            --target production \
+            --build-arg NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
+            --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID="${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}" \
+            -t ${{ secrets.DOCKER_USERNAME }}/resumate:${{ env.APP_VERSION }} \
+            -t ${{ secrets.DOCKER_USERNAME }}/resumate:latest .
+
+          # Push both tags to Docker Hub
+          docker push ${{ secrets.DOCKER_USERNAME }}/resumate:${{ env.APP_VERSION }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/resumate:latest
+
+      # Step 5: 
+      - name: Deploy to AWS EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Ensure application directory exists on EC2
+            mkdir -p ~/resumate-bro
+            cd ~/resumate-bro
+
+            # Log in to Docker Hub on EC2
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            # Pull latest image
+            docker pull ${{ secrets.DOCKER_USERNAME }}/resumate-bro:latest
+
+            # Update production .env file on EC2
+            echo "${{ secrets.ENV_FILE }}" > .env
+
+            # Stop and remove existing container if running
+            docker stop resumate-bro-prod || true
+            docker rm resumate-bro-prod || true
+
+            # Run new container on port 80
+            docker run -d \
+              --name resumate-bro-prod \
+              --restart always \
+              -p 80:3000 \
+              --env-file .env \
+              ${{ secrets.DOCKER_USERNAME }}/resumate-bro:latest
+
+            # Clean up old unused Docker images
+            docker image prune -f
