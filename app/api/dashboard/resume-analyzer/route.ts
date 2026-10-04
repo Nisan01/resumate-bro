@@ -56,6 +56,20 @@ function groqBody(model: string, content: string) {
   });
 }
 
+async function isGroqAvailable() {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return false;
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -63,6 +77,13 @@ export async function POST(req: NextRequest) {
     const targetRole = (formData.get('targetRole') as string) || 'Software Engineer';
 
     if (!file) return new Response(JSON.stringify({ error: 'No file uploaded' }), { status: 400 });
+
+    if (!(await isGroqAvailable())) {
+      return new Response(
+        JSON.stringify({ error: 'AI service is unavailable. Please check the Groq API key and try again.' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     const buffer = await file.arrayBuffer();
     const text = await extractText(buffer);
@@ -81,8 +102,8 @@ export async function POST(req: NextRequest) {
             'https://api.groq.com/openai/v1/chat/completions',
             {
               method: 'POST',
-              headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY_V2}`, 'Content-Type': 'application/json' },
-              body: groqBody('llama-3.1-8b-instant', analyzeProfilePrompt(text, targetRole)),
+              headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+              body: groqBody('openai/gpt-oss-20b', analyzeProfilePrompt(text, targetRole)),
             },
             'Call1-Profile'
           );
@@ -99,10 +120,8 @@ export async function POST(req: NextRequest) {
             console.log(`🪙 Call 1 tokens: ${tokens1}`);
           } else {
             console.error('❌ Call 1 failed');
-            emit(controller, 'header',      { name: '', currentRole: '', targetRole });
-            emit(controller, 'contactInfo', {});
-            emit(controller, 'summary',     {});
-            emit(controller, 'skills',      {});
+            emit(controller, 'error', { message: 'AI analysis could not be started. Please try again later.' });
+            return;
           }
 
           await new Promise(r => setTimeout(r, 2000));
@@ -113,8 +132,8 @@ export async function POST(req: NextRequest) {
             'https://api.groq.com/openai/v1/chat/completions',
             {
               method: 'POST',
-              headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY_V2}`, 'Content-Type': 'application/json' },
-              body: groqBody('llama-3.3-70b-versatile', analyzeDeepPrompt(text, targetRole)),
+              headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+              body: groqBody('openai/gpt-oss-20b', analyzeDeepPrompt(text, targetRole)),
             },
             'Call2A-WorkCerts'
           );
@@ -129,8 +148,8 @@ export async function POST(req: NextRequest) {
             console.log(`🪙 Call 2A tokens: ${tokens2}`);
           } else {
             console.error('❌ Call 2A failed');
-            emit(controller, 'workExperience',  {});
-            emit(controller, 'certifications',  {});
+            emit(controller, 'error', { message: 'AI analysis stopped before it could be completed. Please try again later.' });
+            return;
           }
 
           await new Promise(r => setTimeout(r, 1000));
@@ -141,8 +160,8 @@ export async function POST(req: NextRequest) {
             'https://api.groq.com/openai/v1/chat/completions',
             {
               method: 'POST',
-              headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY_V2}`, 'Content-Type': 'application/json' },
-              body: groqBody('llama-3.3-70b-versatile', analyzeRecruiterPrompt(text, targetRole, atsRulesJSON)),
+              headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+              body: groqBody('openai/gpt-oss-20b', analyzeRecruiterPrompt(text, targetRole, atsRulesJSON)),
             },
             'Call2B-ATSRecruiter'
           );
@@ -157,8 +176,8 @@ export async function POST(req: NextRequest) {
             console.log(`🪙 Call 2B tokens: ${tokens3}`);
           } else {
             console.error('❌ Call 2B failed');
-            emit(controller, 'atsEvaluation', {});
-            emit(controller, 'recruiterEye',  {});
+            emit(controller, 'error', { message: 'AI analysis stopped before it could be completed. Please try again later.' });
+            return;
           }
 
           const totalTokensUsed = tokens1 + tokens2 + tokens3;

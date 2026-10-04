@@ -5,17 +5,35 @@ import type { InterviewDifficulty } from "@/lib/resume-profile";
 
 const GROQ_TIMEOUT_MS = 10000;
 
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not configured on the server.");
+  }
+  return secret;
+}
 
 async function getAuthEmail(): Promise<string | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
   if (!token) return null;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { email: string };
-    return decoded.email;
+    const decoded = jwt.verify(token, getJwtSecret()) as { email?: string };
+    return typeof decoded?.email === "string" ? decoded.email : null;
   } catch {
     return null;
   }
+}
+
+function parseQuestionResponse(content: string): { questions: PracticeQuestionItem[] } {
+  const cleaned = content.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  const parsed = JSON.parse(cleaned) as { questions?: PracticeQuestionItem[] };
+
+  if (!parsed || !Array.isArray(parsed.questions)) {
+    throw new Error("AI returned an invalid question payload.");
+  }
+
+  return { questions: parsed.questions };
 }
 
 
@@ -90,16 +108,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
     }
 
-    const body = await req.json() as {
+    let body: {
       targetRole?: string;
       difficulty?: InterviewDifficulty;
       count?: number;
       offset?: number;
     };
 
+    try {
+      body = await req.json() as typeof body;
+    } catch {
+      return NextResponse.json(
+        { error: "Request body must be valid JSON." },
+        { status: 400 }
+      );
+    }
+
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "Request body must be a JSON object." },
+        { status: 400 }
+      );
+    }
+
     const { targetRole, difficulty, count = 5, offset = 0 } = body;
 
-    
     if (!targetRole || targetRole.trim().length < 2) {
       return NextResponse.json(
         { error: "Please enter your target role before generating questions." },
@@ -122,7 +155,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const safeCount = Math.min(Math.max(Number(count) || 5, 1), 10);
+    const requestedCount = Number(count);
+    if (!Number.isFinite(requestedCount)) {
+      return NextResponse.json(
+        { error: "Count must be a valid number." },
+        { status: 400 }
+      );
+    }
+
+    const safeCount = Math.min(Math.max(Math.floor(requestedCount), 1), 10);
     const parsedOffset = Number(offset);
     const safeOffset = Number.isFinite(parsedOffset)
       ? Math.max(Math.floor(parsedOffset), 0)
@@ -144,7 +185,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama-3.1-8b-instant", 
+         model: "openai/gpt-oss-20b",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           temperature: 0.7,
@@ -170,13 +211,12 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
-    
+
     if (!content) {
       throw new Error("Invalid response missing content from Groq.");
     }
 
-    
-    const parsedData = JSON.parse(content) as { questions: PracticeQuestionItem[] };
+    const parsedData = parseQuestionResponse(content);
     let questions = parsedData.questions || [];
 
     if (!Array.isArray(questions) || questions.length === 0) {

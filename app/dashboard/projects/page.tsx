@@ -137,7 +137,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
             <h2 className="text-[20px] font-bold tracking-tight bg-gradient-to-r from-[#c4b0ff] via-[#7ee8fa] to-[#ff9de2] bg-clip-text text-transparent">
               AI Analysis Report
             </h2>
-            <p className="text-[11px] text-[#dcd7ff]/35 -mt-0.5">Powered by Claude AI</p>
+            <p className="text-[11px] text-[#dcd7ff]/35 -mt-0.5">Powered by Groq AI</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ function AnalysisCard({ result, onClose }: { result: AnalysisResult; onClose: ()
           <p className="font-bold text-white text-[16px] leading-tight">{result.project_name}</p>
           <div className="flex items-center gap-2 mt-1">
             <Cpu size={10} className="text-[#c4b0ff]" />
-            <span className="text-[10px] text-[#dcd7ff]/45">Analyzed with Claude Sonnet</span>
+            <span className="text-[10px] text-[#dcd7ff]/45">Analyzed with Groq AI</span>
           </div>
         </div>
         <div className="flex gap-2">

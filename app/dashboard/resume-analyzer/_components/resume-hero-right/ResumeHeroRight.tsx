@@ -158,27 +158,62 @@ export default function ResumeUploaderRight({ onAnalysisUpdate, onDone }: Props)
     formData.append("targetRole", targetRole || user?.targetRole || "Software Engineer");
     formData.append("industry", industry || user?.targetIndustry || "Tech");
 
-    const res = await fetch("/api/dashboard/resume-analyzer", { method: "POST", body: formData });
-    const reader = res.body!.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
+    const stopScanning = (message: string) => {
+      if (progressRef.current) clearInterval(progressRef.current);
+      if (stepRef.current) clearInterval(stepRef.current);
+      setProgress(0);
+      setStepIndex(0);
+      setStage("ready");
+      alert(message);
+    };
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop()!;
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        try {
-          const { section, data } = JSON.parse(line);
-          localAnalysisRef.current = { ...localAnalysisRef.current, [section]: data };
-          onAnalysisUpdate(prev => ({ ...prev, [section]: data }));
-        } catch {
-          console.error("Failed to parse line:", line);
+    try {
+      const res = await fetch("/api/dashboard/resume-analyzer", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        stopScanning(data?.error || "AI service is unavailable. Please try again later.");
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) {
+        stopScanning("AI service returned an empty response. Please try again later.");
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let streamError: string | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop()!;
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const { section, data } = JSON.parse(line);
+            if (section === "error") {
+              streamError = data?.message || "AI analysis failed. Please try again later.";
+              continue;
+            }
+            localAnalysisRef.current = { ...localAnalysisRef.current, [section]: data };
+            onAnalysisUpdate(prev => ({ ...prev, [section]: data }));
+          } catch {
+            console.error("Failed to parse line:", line);
+          }
         }
       }
+
+      if (streamError) {
+        stopScanning(streamError);
+        return;
+      }
+    } catch {
+      stopScanning("Could not reach the AI service. Please try again later.");
+      return;
     }
 
     if (progressRef.current) clearInterval(progressRef.current);
