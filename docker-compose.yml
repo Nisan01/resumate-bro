@@ -1,7 +1,11 @@
+version: '3.8'
+
 services:
+  # ── Development Mode (Local Only) ──
   app-dev:
     build:
       context: .
+      dockerfile: Dockerfile
       target: dev
     ports:
       - "3000:3000"
@@ -10,13 +14,21 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    profiles:
+      - dev
 
+  # ── Production Mode (EC2 Server) ──
   app-prod:
     build:
       context: .
+      dockerfile: Dockerfile
       target: production
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
     image: resumate-bro:1.0
     ports:
-      - "3000:3000"
+      - "80:3000"  # Expose port 80 to public internet
     env_file:
       - .env
+    restart: always
