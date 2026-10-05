@@ -21,7 +21,7 @@ if (!user || !user.password || user.password !== password) {
 
     response.cookies.set("auth_token", token, { 
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to true in production for HTTPS
       sameSite: "lax",
       maxAge: 60 * 60 * 5,
       path: "/",
